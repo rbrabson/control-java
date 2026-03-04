@@ -4,8 +4,8 @@ import control.pid.PID;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {
-        PID controller = new PID(1.5, 0.2, 0.05, PID.withIntegralSumMax(10.0), PID.withStabilityThreshold(50.0));
-        controller.setOutputLimits(-1.0, 1.0);
+        PID controller = new PID(1.5, 0.2, 0.05, PID.withIntegralSumMax(10.0), PID.withStabilityThreshold(50.0),
+                PID.withOutputLimits(-1.0, 1.0));
 
         double target = 90.0;
         double position = 0.0;

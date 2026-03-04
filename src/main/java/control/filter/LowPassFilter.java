@@ -1,10 +1,23 @@
 package control.filter;
 
+/**
+ * A simple low-pass filter that smooths out noisy measurements by blending the
+ * previous estimate with the new measurement. The gain parameter controls how
+ * much weight is given to the previous estimate versus the new measurement.
+ */
 public class LowPassFilter implements Filter {
     private double gain;
     private double previousEstimate;
     private boolean initialized;
 
+    /**
+     * Creates a new LowPassFilter with the specified gain.
+     * 
+     * @param gain The gain for the filter, which must be between 0 and 1
+     *             (exclusive). A higher gain gives more weight to the previous
+     *             estimate, while a lower gain gives more weight to the new
+     *             measurement.
+     */
     public LowPassFilter(double gain) {
         if (gain <= 0 || gain >= 1) {
             throw new IllegalArgumentException("gain must be between 0 and 1 (exclusive)");
@@ -14,6 +27,15 @@ public class LowPassFilter implements Filter {
         this.initialized = false;
     }
 
+    /**
+     * Estimates the current value based on the new measurement and the previous
+     * estimate. If the filter has not been initialized yet, it will simply return
+     * the first measurement as the initial estimate.
+     *
+     * @param measurement The current measurement to be processed by the filter.
+     * @return The estimated value after applying the low-pass filter to the
+     *         measurement.
+     */
     @Override
     public double estimate(double measurement) {
         if (!initialized) {
@@ -27,11 +49,24 @@ public class LowPassFilter implements Filter {
         return estimate;
     }
 
+    /**
+     * Returns the current gain of the filter.
+     *
+     * @return The gain value, which is between 0 and 1 (exclusive).
+     */
     @Override
     public double getGain() {
         return gain;
     }
 
+    /**
+     * Sets the gain of the filter. The gain must be between 0 and 1 (exclusive). A
+     * higher gain gives more weight to the previous estimate, while a lower gain
+     * gives more weight to the new measurement.
+     *
+     * @param gain The new gain value to set, which must be between 0 and 1
+     *             (exclusive).
+     */
     public void setGain(double gain) {
         if (gain <= 0 || gain >= 1) {
             throw new IllegalArgumentException("gain must be between 0 and 1 (exclusive)");
@@ -39,16 +74,36 @@ public class LowPassFilter implements Filter {
         this.gain = gain;
     }
 
+    /**
+     * Resets the filter by clearing the previous estimate and marking it as
+     * uninitialized. After calling this method, the next call to estimate() will
+     * treat the next measurement as the initial estimate.
+     */
     @Override
     public void reset() {
         previousEstimate = 0.0;
         initialized = false;
     }
 
+    /**
+     * Returns the last estimate produced by the filter. If the filter has not been
+     * initialized yet, it will return 0.0.
+     *
+     * @return The last estimate produced by the filter, or 0.0 if the filter has
+     *         not been initialized.
+     */
     public double getLastEstimate() {
         return initialized ? previousEstimate : 0.0;
     }
 
+    /**
+     * Returns whether the filter has been initialized with at least one
+     * measurement. If the filter has not been initialized, it will return false,
+     * and the next call to estimate() will treat the next measurement
+     *
+     * @return true if the filter has been initialized with at least one
+     *         measurement, false otherwise.
+     */
     public boolean isInitialized() {
         return initialized;
     }

@@ -63,8 +63,8 @@ Main class: `PID`
 Supports:
 
 - Proportional/integral/derivative control
-- Output clamping (`withOutputLimits`, `setOutputLimits`)
-- Feedforward term (`withFeedForward`, `setFeedForward`)
+- Output clamping (`withOutputLimits`)
+- Feedforward term (`withFeedForward`)
 - Integral reset on zero crossing (`withIntegralResetOnZeroCross`)
 - Integral cap (`withIntegralSumMax`)
 - Stability threshold to suppress integral accumulation during high dynamics (`withStabilityThreshold`)

@@ -9,8 +9,7 @@ public class Main {
         double feedForward = ambient * 0.02;
 
         PID controller = new PID(0.5, 0.1, 0.02, PID.withFeedForward(feedForward), PID.withIntegralResetOnZeroCross(),
-                PID.withFilter(new LowPassFilter(0.2)));
-        controller.setOutputLimits(0.0, 1.0);
+                PID.withFilter(new LowPassFilter(0.2)), PID.withOutputLimits(0.0, 1.0));
 
         double setpoint = 70.0;
         double temp = ambient;
