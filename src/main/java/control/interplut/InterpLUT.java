@@ -3,25 +3,70 @@ package control.interplut;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 
+/**
+ * A lookup table (LUT) for interpolation. This class allows you to create a LUT
+ * by adding control points (input-output pairs) and then generates the
+ * necessary slopes for cubic Hermite interpolation. The get() method can be
+ * used to retrieve interpolated values based on the input.
+ */
 public class InterpLUT {
-    private final List<Double> x;
-    private final List<Double> y;
-    private List<Double> m;
-
-    public InterpLUT() {
-        this.x = new ArrayList<>();
-        this.y = new ArrayList<>();
-        this.m = new ArrayList<>();
+    public interface Option extends Consumer<InterpLUT> {
     }
 
-    public InterpLUT add(double input, double output) {
+    private final List<Double> x = new ArrayList<>();
+    private final List<Double> y = new ArrayList<>();
+    private final List<Double> m = new ArrayList<>();
+
+    /**
+     * Creates a new InterpLUT with the given options. Each option is applied to
+     * this InterpLUT instance, allowing you to add control points and configure the
+     * LUT before it is created.
+     * 
+     * @param options A variable number of Option instances that configure this
+     *                InterpLUT.
+     */
+    public InterpLUT(Option... options) {
+        for (Option option : options) {
+            option.accept(this);
+        }
+        createLUT();
+    }
+
+    /**
+     * Returns an Option that adds a control point to the LUT when applied.
+     * 
+     * @param x The input value for the control point.
+     * @param y The output value corresponding to the input for the control point.
+     * @return An Option that adds the specified control point to the LUT when
+     *         applied.
+     */
+    public static InterpLUT.Option add(double x, double y) {
+        return p -> p.addPoint(x, y);
+    }
+
+    /**
+     * Adds a control point to the LUT. Control points are pairs of input and output
+     * values that define the shape of the LUT. After adding all control points, the
+     * createLUT() method must be called to generate the LUT for interpolation.
+     *
+     * @param input  The input value for the control point.
+     * @param output The output value corresponding to the input for the control
+     *               point.
+     */
+    private void addPoint(double input, double output) {
         x.add(input);
         y.add(output);
-        return this;
     }
 
-    public InterpLUT createLUT() {
+    /**
+     * Generates the LUT for interpolation based on the added control points. This
+     * method calculates the necessary slopes for cubic Hermite interpolation and
+     * prepares the LUT for use. After calling this method, the get() method can be
+     * used to retrieve interpolated values based on the input.
+     */
+    private void createLUT() {
         if (x.size() != y.size() || x.size() < 2) {
             throw new IllegalStateException(
                     "there must be at least two control points and the arrays must be of equal length");
@@ -31,14 +76,14 @@ public class InterpLUT {
         for (int i = 0; i < x.size(); i++) {
             points.add(new Point(x.get(i), y.get(i)));
         }
-        points.sort(Comparator.comparingDouble(p -> p.x));
+        points.sort(Comparator.comparingDouble(Point::x));
 
         int n = points.size();
         double[] sx = new double[n];
         double[] sy = new double[n];
         for (int i = 0; i < n; i++) {
-            sx[i] = points.get(i).x;
-            sy[i] = points.get(i).y;
+            sx[i] = points.get(i).x();
+            sy[i] = points.get(i).y();
         }
 
         for (int i = 0; i < n - 1; i++) {
@@ -84,9 +129,21 @@ public class InterpLUT {
             y.add(sy[i]);
             m.add(sm[i]);
         }
-        return this;
     }
 
+    /**
+     * Retrieves the interpolated output value corresponding to the given input
+     * using cubic Hermite interpolation. The input must be within the bounds of the
+     * control points added to the LUT.
+     *
+     * @param input The input value for which to retrieve the interpolated output.
+     *              This value must be within the bounds of the control points added
+     *              to the LUT.
+     * @return The interpolated output value corresponding to the given input. If
+     *         the input is outside the bounds of the control points, an
+     *         IllegalArgumentException is thrown. If the input is NaN, NaN is
+     *         returned.
+     */
     public double get(double input) {
         int n = x.size();
         if (n == 0) {
@@ -119,6 +176,18 @@ public class InterpLUT {
                 + (y.get(i + 1) * (3 - 2 * t) + h * m.get(i + 1) * (t - 1)) * t * t;
     }
 
+    /**
+     * Returns a string representation of the InterpLUT, showing the control points
+     * and their corresponding slopes. The format is a list of tuples, where each
+     * tuple contains the input value, output value, and slope for each control
+     * point. This can be useful for debugging and visualizing the LUT after it has
+     * been created.
+     *
+     * @return A string representation of the InterpLUT, showing the control points
+     *         and their corresponding slopes in a readable format. Each control
+     *         point is represented as a tuple of the input value, output value, and
+     *         slope, and the entire LUT is represented as a list of these tuples.
+     */
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder("[");

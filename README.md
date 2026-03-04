@@ -155,8 +155,8 @@ Main class: `InterpLUT`
 
 Features:
 
-- Add control points with chainable `add(x, y)`
-- Build monotone cubic spline via `createLUT()`
+- Add control points using options pattern with `add(x, y)`
+- Automatically builds monotone cubic spline on construction
 - Evaluate with `get(input)`
 - Validates duplicate X values and out-of-range requests
 
@@ -165,11 +165,13 @@ Quick start:
 ```java
 import control.interplut.InterpLUT;
 
-InterpLUT lut = new InterpLUT()
-    .add(0, 0.0)
-    .add(100, 1.0)
-    .add(200, 1.8)
-    .createLUT();
+import static control.interplut.InterpLUT.add;
+
+InterpLUT lut = new InterpLUT(
+    add(0, 0.0),
+    add(100, 1.0),
+    add(200, 1.8)
+);
 
 double y = lut.get(150);
 ```
@@ -226,7 +228,7 @@ Complete command list: [EXAMPLES.md](EXAMPLES.md).
 - `FullStateFeedback` requires matching vector dimensions.
 - `LowPassFilter` gain must be in `(0, 1)`.
 - `KalmanFilter` requires non-negative covariance and positive history size.
-- `InterpLUT.get(...)` requires successful `createLUT()` and in-range input.
+- `InterpLUT.get(...)` requires in-range input.
 
 ## Testing
 
