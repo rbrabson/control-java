@@ -20,7 +20,7 @@ java -cp target/classes <fully.qualified.MainClass>
 
 ## Example Entrypoints
 
-InterpLUT examples use chained input style (for example: `new InterpLUT().add(...).add(...).createLUT()`).
+InterpLUT examples use the options pattern (for example: `new InterpLUT(add(...), add(...))`).
 
 - `java -cp target/classes control.examples.feedback.feedback_control.Main`
 - `java -cp target/classes control.examples.feedforward.arm.Main`
