@@ -16,7 +16,11 @@ class FullStateFeedbackTest {
     @Test
     void throwsOnMismatchedVectorLengths() {
         FullStateFeedback fsf = new FullStateFeedback(new double[] { 1.0, 1.0 });
-        assertThrows(IllegalArgumentException.class,
-                () -> fsf.calculate(new double[] { 1.0 }, new double[] { 1.0, 2.0 }));
+        assertThrows(IllegalArgumentException.class, new org.junit.jupiter.api.function.Executable() {
+            @Override
+            public void execute() throws Throwable {
+                fsf.calculate(new double[] { 1.0 }, new double[] { 1.0, 2.0 });
+            }
+        });
     }
 }
