@@ -78,7 +78,6 @@ public class PID {
      * @return An Option that sets the feedForward term of the PID controller to the
      *         specified value.
      */
-
     public static Option withFeedForward(double feedForward) {
         return p -> p.feedForward = feedForward;
     }
@@ -95,7 +94,6 @@ public class PID {
      *         controller to true, which will reset the integral term whenever the
      *         error crosses zero
      */
-
     public static Option withIntegralResetOnZeroCross() {
         return p -> p.integralResetOnZeroCross = true;
     }
@@ -113,7 +111,6 @@ public class PID {
      * @return An Option that sets the stability threshold of the PID controller to
      *         the specified value.
      */
-
     public static Option withStabilityThreshold(double threshold) {
         return p -> p.stabilityThreshold = Math.abs(threshold);
     }
@@ -129,7 +126,6 @@ public class PID {
      * @return An Option that sets the integralSumMax of the PID controller to the
      *         specified value.
      */
-
     public static Option withIntegralSumMax(double maxSum) {
         return p -> p.integralSumMax = Math.abs(maxSum);
     }
@@ -203,7 +199,6 @@ public class PID {
      * @return An Option that sets the PID gains of the controller based on the
      *         specified spring stiffness, mass,
      */
-
     public static Option withDampening(double ka, double kv, double po) {
         return p -> {
             if (p.kp < kv * kv / 4 * ka) {
