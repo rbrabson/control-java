@@ -15,7 +15,7 @@ class PIDTest {
 
     @Test
     void supportsDerivativeFilterOption() {
-        PID pid = new PID(0.0, 0.0, 1.0, PID.withFilter(new LowPassFilter(0.2)));
+        PID pid = new PID(0.0, 0.0, 1.0, PID.withFilter(new LowPassFilter(0.8)));
         pid.calculate(10.0, 0.0);
         double out = pid.calculate(8.0, 0.0);
         assertTrue(Double.isFinite(out));

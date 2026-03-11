@@ -2,27 +2,30 @@ package control.filter;
 
 /**
  * A simple low-pass filter that smooths out noisy measurements by blending the
- * previous estimate with the new measurement. The gain parameter controls how
- * much weight is given to the previous estimate versus the new measurement.
+ * previous estimate with the new measurement. The alpha parameter controls how
+ * much weight is given to the new measurement versus the previous estimate.
+ * Higher alpha = less smoothing (faster response), lower alpha = more
+ * smoothing.
  */
 public class LowPassFilter implements Filter {
-    private double gain;
+    private double alpha;
     private double previousEstimate;
     private boolean initialized;
 
     /**
-     * Creates a new LowPassFilter with the specified gain.
+     * Creates a new LowPassFilter with the specified alpha smoothing factor.
      * 
-     * @param gain The gain for the filter, which must be between 0 and 1
-     *             (exclusive). A higher gain gives more weight to the previous
-     *             estimate, while a lower gain gives more weight to the new
-     *             measurement.
+     * @param alpha The smoothing factor for the filter, which must be between 0 and
+     *              1 (exclusive). Higher alpha gives more weight to new
+     *              measurements (less smoothing, faster response), while lower
+     *              alpha gives more weight to the previous estimate (more
+     *              smoothing, slower response).
      */
-    public LowPassFilter(double gain) {
-        if (gain <= 0 || gain >= 1) {
-            throw new IllegalArgumentException("gain must be between 0 and 1 (exclusive)");
+    public LowPassFilter(double alpha) {
+        if (alpha <= 0 || alpha >= 1) {
+            throw new IllegalArgumentException("alpha must be between 0 and 1 (exclusive)");
         }
-        this.gain = gain;
+        this.alpha = alpha;
         this.previousEstimate = 0.0;
         this.initialized = false;
     }
@@ -44,34 +47,35 @@ public class LowPassFilter implements Filter {
             return measurement;
         }
 
-        double estimate = gain * previousEstimate + (1 - gain) * measurement;
+        double estimate = alpha * measurement + (1 - alpha) * previousEstimate;
         previousEstimate = estimate;
         return estimate;
     }
 
     /**
-     * Returns the current gain of the filter.
+     * Returns the current alpha smoothing factor of the filter.
      *
-     * @return The gain value, which is between 0 and 1 (exclusive).
+     * @return The alpha value, which is between 0 and 1 (exclusive).
      */
     @Override
     public double getGain() {
-        return gain;
+        return alpha;
     }
 
     /**
-     * Sets the gain of the filter. The gain must be between 0 and 1 (exclusive). A
-     * higher gain gives more weight to the previous estimate, while a lower gain
-     * gives more weight to the new measurement.
+     * Sets the alpha smoothing factor of the filter. Alpha must be between 0 and 1
+     * (exclusive). Higher alpha gives more weight to new measurements (less
+     * smoothing, faster response), while lower alpha gives more weight to the
+     * previous estimate (more smoothing, slower response).
      *
-     * @param gain The new gain value to set, which must be between 0 and 1
-     *             (exclusive).
+     * @param alpha The new alpha value to set, which must be between 0 and 1
+     *              (exclusive).
      */
-    public void setGain(double gain) {
-        if (gain <= 0 || gain >= 1) {
-            throw new IllegalArgumentException("gain must be between 0 and 1 (exclusive)");
+    public void setAlpha(double alpha) {
+        if (alpha <= 0 || alpha >= 1) {
+            throw new IllegalArgumentException("alpha must be between 0 and 1 (exclusive)");
         }
-        this.gain = gain;
+        this.alpha = alpha;
     }
 
     /**

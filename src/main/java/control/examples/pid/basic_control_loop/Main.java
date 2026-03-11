@@ -3,21 +3,39 @@ package control.examples.pid.basic_control_loop;
 import control.pid.PID;
 
 public class Main {
-    public static void main(String[] args) throws InterruptedException {
-        PID controller = new PID(1.0, 0.1, 0.05, PID.withOutputLimits(-100, 100));
+    public static void main(String[] args) {
+        // Basic PID controller: Kp=4.0, Ki=1.2, Kd=3.0
+        // Tuned for fast response with minimal overshoot
+        PID controller = new PID(4.0, 1.2, 3.0, PID.withOutputLimits(-100, 100));
 
         double setpoint = 50.0;
         double position = 0.0;
+        double velocity = 0.0;
+        double dt = 0.02; // 20ms time step
 
-        for (int i = 0; i < 100; i++) {
-            double output = controller.calculate(setpoint, position);
-            position += output * 0.01;
+        System.out.println("Basic PID Control Loop");
+        System.out.println("======================");
+        System.out.println("Target: 50.0, Starting: 0.0");
+        System.out.println("Gains: Kp=4.0, Ki=1.2, Kd=3.0\n");
+        System.out.printf("%-8s %-12s %-12s %-12s%n", "Time", "Position", "Error", "Output");
+        System.out.println("-----------------------------------------------");
 
-            if (i % 10 == 0) {
+        for (int i = 0; i <= 400; i++) {
+            double time = i * dt;
+            double output = controller.calculate(setpoint, position, dt);
+            velocity += output * dt;
+            position += velocity * dt;
+
+            if (i % 20 == 0) {
                 double error = setpoint - position;
-                System.out.printf("step=%d error=%.2f output=%.2f position=%.2f%n", i, error, output, position);
+                System.out.printf("%.2f     %8.3f     %8.3f     %8.3f%n", time, position, error, output);
             }
-            Thread.sleep(10);
         }
+
+        System.out.println("\nFinal position: " + String.format("%.3f", position) + " (target: 50.0)");
+        System.out.println("\nHow PID works:");
+        System.out.println("- Proportional (P): Drives toward target based on current error");
+        System.out.println("- Integral (I): Eliminates steady-state error by accumulating past errors");
+        System.out.println("- Derivative (D): Provides damping to prevent overshoot");
     }
 }

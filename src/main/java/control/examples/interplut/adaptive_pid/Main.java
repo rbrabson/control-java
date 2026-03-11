@@ -7,16 +7,42 @@ import static control.interplut.InterpLUT.add;
 
 public class Main {
     public static void main(String[] args) {
-        InterpLUT kpLut = new InterpLUT(add(0, 0.6), add(20, 0.8), add(50, 1.2), add(100, 1.6));
+        // Adaptive PID: Kp changes based on error magnitude
+        // Larger errors use higher gain for faster response
+        // Smaller errors use lower gain for precise settling
+        InterpLUT kpLut = new InterpLUT(add(0, 0.6), // Small error: gentle control
+                add(20, 0.8), add(50, 1.2), add(100, 1.6) // Large error: aggressive control
+        );
 
-        double setpoint = 75.0;
+        System.out.println("Adaptive PID Control");
+        System.out.println("====================");
+        System.out.println("Kp adapts based on error magnitude\n");
+        System.out.printf("%-8s %-12s %-12s %-12s %-12s%n", "Step", "Position", "Error", "Adaptive Kp", "Output");
+        System.out.println("-------------------------------------------------------");
+
+        double setpoint = 100.0;
         double state = 10.0;
-        double errorMagnitude = Math.abs(setpoint - state);
+        double dt = 0.1;
 
-        double adaptiveKp = kpLut.get(errorMagnitude);
-        PID controller = new PID(adaptiveKp, 0.05, 0.02, PID.withOutputLimits(-1, 1));
+        for (int i = 0; i <= 50; i++) {
+            double error = setpoint - state;
+            double errorMagnitude = Math.abs(error);
 
-        double output = controller.calculate(setpoint, state);
-        System.out.printf("Adaptive Kp=%.3f, output=%.3f%n", adaptiveKp, output);
+            // Adapt Kp based on error
+            double adaptiveKp = kpLut.get(errorMagnitude);
+            PID controller = new PID(adaptiveKp, 0.05, 0.02, PID.withOutputLimits(-50, 50));
+
+            double output = controller.calculate(setpoint, state);
+            state += output * dt;
+
+            if (i % 5 == 0) {
+                System.out.printf("%4d     %8.2f     %8.2f     %8.3f     %8.3f%n", i, state, error, adaptiveKp, output);
+            }
+        }
+
+        System.out.println("\nBenefits of adaptive Kp:");
+        System.out.println("- Fast initial response when error is large (high Kp)");
+        System.out.println("- Smooth settling when near target (low Kp)");
+        System.out.println("- Reduces overshoot while maintaining speed");
     }
 }

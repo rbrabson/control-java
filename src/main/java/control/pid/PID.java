@@ -141,7 +141,6 @@ public class PID {
      * @return An Option that sets the filter of the PID controller to the specified
      *         filter instance.
      */
-
     public static Option withFilter(Filter filter) {
         return p -> p.filter = filter;
     }
@@ -157,7 +156,6 @@ public class PID {
      * @return An Option that sets the output limits of the PID controller to the
      *         specified minimum and maximum values.
      */
-
     public static Option withOutputLimits(double min, double max) {
         return p -> {
             if (min <= max) {
@@ -221,6 +219,7 @@ public class PID {
      * method computes the proportional, integral, and derivative terms based on the
      * error between the reference and state, and applies any configured
      * feedforward, stability threshold, integral sum limits, and output limits.
+     * This method uses real elapsed time (via System.nanoTime()) to calculate dt.
      *
      * @param reference The target reference value that the PID controller is trying
      *                  to achieve.
@@ -232,13 +231,43 @@ public class PID {
      */
     public double calculate(double reference, double state) {
         long now = System.nanoTime();
+
+        if (!initialized) {
+            prevTimeNanos = now;
+        }
+
+        double dt = (now - prevTimeNanos) / 1_000_000_000.0;
+        prevTimeNanos = now;
+
+        return calculate(reference, state, dt);
+    }
+
+    /**
+     * Calculates the PID output based on the given reference, current state, and
+     * time delta. This overload is intended for simulation use where you want to
+     * specify the time step explicitly rather than relying on real elapsed time.
+     * The method computes the proportional, integral, and derivative terms based on
+     * the error between the reference and state, and applies any configured
+     * feedforward, stability threshold, integral sum limits, and output limits.
+     *
+     * @param reference The target reference value that the PID controller is trying
+     *                  to achieve.
+     * @param state     The current state value that the PID controller is using to
+     *                  calculate the error and output.
+     * @param dt        The time delta in seconds to use for integral and derivative
+     *                  calculations. This allows for simulation with a fixed time
+     *                  step independent of real elapsed time.
+     * @return The calculated output from the PID controller, which is the sum of
+     *         the proportional, integral, and derivative terms, plus any
+     *         feedforward, and clamped to the configured output limits.
+     */
+    public double calculate(double reference, double state, double dt) {
         double error = reference - state;
 
         if (!initialized) {
             integral = 0;
             lastReference = reference;
             lastError = error;
-            prevTimeNanos = now;
             initialized = true;
         }
 
@@ -246,8 +275,6 @@ public class PID {
             integral = 0;
             lastReference = reference;
         }
-
-        double dt = (now - prevTimeNanos) / 1_000_000_000.0;
 
         double proportional = calculateProportional(error);
         double derivative = calculateDerivative(error, dt);
@@ -262,7 +289,6 @@ public class PID {
         }
 
         lastError = error;
-        prevTimeNanos = now;
 
         return clampedOutput;
     }
