@@ -259,8 +259,9 @@ public class PID {
         double integralTerm = calculateIntegral(error, dt);
 
         double output = proportional + integralTerm + derivative + feedForward;
-        double clampedOutput = clamp(output);
+        double clampedOutput = clamp(output, outputMin, outputMax);
 
+        // Anti-windup: Adjust integral if output is clamped
         if (output != clampedOutput && ki != 0) {
             integral = (clampedOutput - proportional - derivative - feedForward) / ki;
         }
@@ -274,7 +275,7 @@ public class PID {
     /**
      * Calculates the proportional term of the PID controller based on the given
      * error and the proportional gain (kp).
-     *
+     * 
      * @param error The current error value, which is the difference between the
      *              reference and the state.
      * @return The calculated proportional term, which is the product of the error
@@ -304,11 +305,7 @@ public class PID {
             integral += error * dt;
 
             if (!Double.isNaN(integralSumMax)) {
-                if (integral > integralSumMax) {
-                    integral = integralSumMax;
-                } else if (integral < -integralSumMax) {
-                    integral = -integralSumMax;
-                }
+                integral = clamp(integral, -integralSumMax, integralSumMax);
             }
         }
 
@@ -318,7 +315,7 @@ public class PID {
     /**
      * Calculates the derivative term of the PID controller based on the given
      * error, time delta (dt), and the derivative gain (kd).
-     *
+     * 
      * @param error The current error value, which is the difference between the
      *              reference and the state.
      * @param dt    The time delta in seconds since the last calculation.
@@ -333,7 +330,7 @@ public class PID {
     /**
      * Calculates the raw derivative of the error based on the change in error and
      * the time delta (dt).
-     *
+     * 
      * @param error The current error value, which is the difference between the
      *              reference and the state.
      * @param dt    The time delta in seconds since the last calculation.
@@ -348,21 +345,6 @@ public class PID {
         double errorChange = error - lastError;
         double currentEstimate = filter != null ? filter.estimate(errorChange) : errorChange;
         return currentEstimate / dt;
-    }
-
-    /**
-     * Clamps the given value to the configured output limits of the PID controller.
-     * 
-     * @param value The value to be clamped, which is typically the raw output of
-     *              the PID calculation before applying output limits.
-     * @return The clamped value, which will be within the range defined by
-     *         outputMin and outputMax.
-     */
-    private double clamp(double value) {
-        if (value > outputMax) {
-            return outputMax;
-        }
-        return Math.max(value, outputMin);
     }
 
     /**
@@ -385,5 +367,23 @@ public class PID {
             filter.reset();
         }
         return this;
+    }
+
+    /**
+     * Clamps a value between a minimum and maximum range.
+     *
+     * @param value The value to clamp.
+     * @param min   The minimum allowed value.
+     * @param max   The maximum allowed value.
+     * @return The clamped value, constrained to be within [min, max].
+     */
+    private static double clamp(double value, double min, double max) {
+        if (value < min) {
+            return min;
+        }
+        if (value > max) {
+            return max;
+        }
+        return value;
     }
 }
