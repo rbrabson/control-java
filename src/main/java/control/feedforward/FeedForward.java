@@ -33,20 +33,6 @@ public class FeedForward {
     }
 
     /**
-     * Copy constructor for creating a new FeedForward controller with the same
-     * configuration.
-     *
-     * @param other The FeedForward controller to copy.
-     */
-    private FeedForward(FeedForward other) {
-        this.kS = other.kS;
-        this.kV = other.kV;
-        this.kA = other.kA;
-        this.kG = other.kG;
-        this.kCos = other.kCos;
-    }
-
-    /**
      * Creates a copy of this FeedForward controller with a gravity gain set. This
      * gain can be used to compensate for the effect of gravity on the system, such
      * as when controlling an arm or elevator.

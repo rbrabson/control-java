@@ -52,30 +52,6 @@ public class PID {
     }
 
     /**
-     * Copy constructor for creating a new PID controller with the same
-     * configuration.
-     *
-     * @param other The PID controller to copy.
-     */
-    private PID(PID other) {
-        this.kp = other.kp;
-        this.ki = other.ki;
-        this.kd = other.kd;
-        this.feedForward = other.feedForward;
-        this.integralResetOnZeroCross = other.integralResetOnZeroCross;
-        this.stabilityThreshold = other.stabilityThreshold;
-        this.integralSumMax = other.integralSumMax;
-        this.outputMin = other.outputMin;
-        this.outputMax = other.outputMax;
-        this.filter = other.filter;
-        this.integral = other.integral;
-        this.lastReference = other.lastReference;
-        this.lastError = other.lastError;
-        this.prevTimeNanos = other.prevTimeNanos;
-        this.initialized = other.initialized;
-    }
-
-    /**
      * Creates a copy of this PID controller with a feedforward term.
      *
      * @param feedForward The feedforward term to be added to the output of the PID
