@@ -43,20 +43,20 @@ mvn -DskipTests compile
 
 ## Project Layout
 
-- `src/main/java/control/feedback` — full-state feedback controller
-- `src/main/java/control/feedforward` — feedforward controller
-- `src/main/java/control/filter` — filter interface and implementations
-- `src/main/java/control/interplut` — interpolating lookup table
-- `src/main/java/control/motionprofile` — motion profile generation
-- `src/main/java/control/pid` — PID controller
-- `src/main/java/control/examples` — runnable example programs
-- `src/test/java/control` — package tests
+- `src/main/java/com/rbrabson/control/feedback` — full-state feedback controller
+- `src/main/java/com/rbrabson/control/feedforward` — feedforward controller
+- `src/main/java/com/rbrabson/control/filter` — filter interface and implementations
+- `src/main/java/com/rbrabson/control/interplut` — interpolating lookup table
+- `src/main/java/com/rbrabson/control/motionprofile` — motion profile generation
+- `src/main/java/com/rbrabson/control/pid` — PID controller
+- `src/main/java/com/rbrabson/control/examples` — runnable example programs
+- `src/test/java/com/rbrabson/control` — package tests
 
 Example run commands are listed in [EXAMPLES.md](EXAMPLES.md).
 
 ## Packages
 
-### PID (`control.pid`)
+### PID (`com.rbrabson.control.pid`)
 
 Main class: `PID`
 
@@ -76,7 +76,7 @@ Configuration uses fluent methods that return copies to support method chaining.
 Quick start:
 
 ```java
-import control.pid.PID;
+import com.rbrabson.control.pid.PID;
 
 PID controller = new PID(1.0, 0.1, 0.05)
     .withOutputLimits(-100.0, 100.0);
@@ -84,7 +84,7 @@ PID controller = new PID(1.0, 0.1, 0.05)
 double output = controller.calculate(50.0, 42.5);
 ```
 
-### Feedforward (`control.feedforward`)
+### Feedforward (`com.rbrabson.control.feedforward`)
 
 Main class: `FeedForward`
 
@@ -100,7 +100,7 @@ Configurable via fluent methods:
 Quick start:
 
 ```java
-import control.feedforward.FeedForward;
+import com.rbrabson.control.feedforward.FeedForward;
 
 FeedForward ff = new FeedForward(0.0, 1.2, 0.3)
     .withGravityGain(9.81)
@@ -109,7 +109,7 @@ FeedForward ff = new FeedForward(0.0, 1.2, 0.3)
 double u = ff.calculate(Math.PI / 4.0, 1.5, 0.2);
 ```
 
-### Feedback (`control.feedback`)
+### Feedback (`com.rbrabson.control.feedback`)
 
 Main class: `FullStateFeedback`
 
@@ -121,7 +121,7 @@ Implements dot-product full-state control:
 Quick start:
 
 ```java
-import control.feedback.FullStateFeedback;
+import com.rbrabson.control.feedback.FullStateFeedback;
 
 FullStateFeedback fsf = new FullStateFeedback(new double[]{1.5, 0.3});
 double out = fsf.calculate(
@@ -129,7 +129,7 @@ double out = fsf.calculate(
     new double[]{8.0, 1.0});
 ```
 
-### Filters (`control.filter`)
+### Filters (`com.rbrabson.control.filter`)
 
 Interface: `Filter`
 
@@ -145,13 +145,13 @@ Implementations:
 Low-pass example:
 
 ```java
-import control.filter.LowPassFilter;
+import com.rbrabson.control.filter.LowPassFilter;
 
 LowPassFilter lpf = new LowPassFilter(0.6);
 double filtered = lpf.estimate(12.0);
 ```
 
-### InterpLUT (`control.interplut`)
+### InterpLUT (`com.rbrabson.control.interplut`)
 
 Main class: `InterpLUT`
 
@@ -165,7 +165,7 @@ Features:
 Quick start:
 
 ```java
-import control.interplut.InterpLUT;
+import com.rbrabson.control.interplut.InterpLUT;
 
 InterpLUT lut = new InterpLUT()
     .withPoint(0, 0.0)
@@ -176,7 +176,7 @@ InterpLUT lut = new InterpLUT()
 double y = lut.get(150);
 ```
 
-### Motion Profile (`control.motionprofile`)
+### Motion Profile (`com.rbrabson.control.motionprofile`)
 
 Main classes:
 
@@ -196,9 +196,9 @@ Useful methods:
 Quick start:
 
 ```java
-import control.motionprofile.Constraints;
-import control.motionprofile.MotionProfile;
-import control.motionprofile.State;
+import com.rbrabson.control.motionprofile.Constraints;
+import com.rbrabson.control.motionprofile.MotionProfile;
+import com.rbrabson.control.motionprofile.State;
 
 MotionProfile profile = new MotionProfile(
     new Constraints(2.0, 1.0),
@@ -211,13 +211,13 @@ State s = profile.calculate(0.5);
 
 ## Examples
 
-All runnable examples are under `src/main/java/control/examples`.
+All runnable examples are under `src/main/java/com/rbrabson/control/examples`.
 
 You can run any example after compile:
 
 ```bash
 mvn -DskipTests compile
-java -cp target/classes control.examples.pid.basic_control_loop.Main
+java -cp target/classes com.rbrabson.control.examples.pid.basic_control_loop.Main
 ```
 
 Complete command list: [EXAMPLES.md](EXAMPLES.md).
@@ -232,7 +232,7 @@ Complete command list: [EXAMPLES.md](EXAMPLES.md).
 
 ## Testing
 
-Tests live under `src/test/java/control` and currently cover core behavior in all package areas.
+Tests live under `src/test/java/com/rbrabson/control` and currently cover core behavior in all package areas.
 
 Run:
 
