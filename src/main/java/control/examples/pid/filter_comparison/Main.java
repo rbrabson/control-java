@@ -7,13 +7,11 @@ import control.pid.PID;
 public class Main {
     public static void main(String[] args) {
         // Compare derivative filtering methods in PID controllers
-        PID lowPassPID = new PID(0.5, 0.1, 0.05, PID.withFilter(new LowPassFilter(0.5)),
-                PID.withOutputLimits(-100, 100));
+        PID lowPassPID = new PID(0.5, 0.1, 0.05).withFilter(new LowPassFilter(0.5)).withOutputLimits(-100, 100);
 
-        PID kalmanPID = new PID(0.5, 0.1, 0.05, PID.withFilter(new KalmanFilter(0.05, 0.1, 10)),
-                PID.withOutputLimits(-100, 100));
+        PID kalmanPID = new PID(0.5, 0.1, 0.05).withFilter(new KalmanFilter(0.05, 0.1, 10)).withOutputLimits(-100, 100);
 
-        PID noFilterPID = new PID(0.5, 0.1, 0.05, PID.withOutputLimits(-100, 100));
+        PID noFilterPID = new PID(0.5, 0.1, 0.05).withOutputLimits(-100, 100);
 
         double setpoint = 50.0;
         double x1 = 10.0, v1 = 0.0;

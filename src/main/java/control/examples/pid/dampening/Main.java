@@ -6,10 +6,10 @@ import control.pid.PID;
 public class Main {
     public static void main(String[] args) {
         // Compare three PID configurations to demonstrate dampening effects
-        PID basic = new PID(2.0, 0.5, 0.8, PID.withOutputLimits(-50, 50));
-        PID filtered = new PID(2.0, 0.5, 0.8, PID.withFilter(new LowPassFilter(0.6)), PID.withOutputLimits(-50, 50));
-        PID damped = new PID(2.0, 0.5, 0.8, PID.withFilter(new LowPassFilter(0.6)), PID.withStabilityThreshold(3.0),
-                PID.withOutputLimits(-50, 50));
+        PID basic = new PID(2.0, 0.5, 0.8).withOutputLimits(-50, 50);
+        PID filtered = new PID(2.0, 0.5, 0.8).withFilter(new LowPassFilter(0.6)).withOutputLimits(-50, 50);
+        PID damped = new PID(2.0, 0.5, 0.8).withFilter(new LowPassFilter(0.6)).withStabilityThreshold(3.0)
+                .withOutputLimits(-50, 50);
 
         double target = 100.0;
         double x1 = 20.0, v1 = 0.0;

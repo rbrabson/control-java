@@ -63,21 +63,23 @@ Main class: `PID`
 Supports:
 
 - Proportional/integral/derivative control
-- Output clamping (`withOutputLimits`)
-- Feedforward term (`withFeedForward`)
-- Integral reset on zero crossing (`withIntegralResetOnZeroCross`)
-- Integral cap (`withIntegralSumMax`)
-- Stability threshold to suppress integral accumulation during high dynamics (`withStabilityThreshold`)
-- Derivative filtering via pluggable `Filter` (`withFilter`)
-- Optional dampening-derived `kd` (`withDampening`)
+- Output clamping (`.withOutputLimits(...)`)
+- Feedforward term (`.withFeedForward(...)`)
+- Integral reset on zero crossing (`.withIntegralResetOnZeroCross()`)
+- Integral cap (`.withIntegralSumMax(...)`)
+- Stability threshold to suppress integral accumulation during high dynamics (`.withStabilityThreshold(...)`)
+- Derivative filtering via pluggable `Filter` (`.withFilter(...)`)
+- Optional dampening-derived `kd` (`.withDampening(...)`)
+
+Configuration uses fluent methods that return copies to support method chaining.
 
 Quick start:
 
 ```java
 import control.pid.PID;
 
-PID controller = new PID(1.0, 0.1, 0.05,
-    PID.withOutputLimits(-100.0, 100.0));
+PID controller = new PID(1.0, 0.1, 0.05)
+    .withOutputLimits(-100.0, 100.0);
 
 double output = controller.calculate(50.0, 42.5);
 ```
@@ -90,19 +92,19 @@ Model:
 
 - `kV * velocity + kA * acceleration + kG + kCos * cos(position)`
 
-Configurable via option pattern:
+Configurable via fluent methods:
 
-- `withGravityGain(...)`
-- `withCosineGain(...)`
+- `.withGravityGain(...)`
+- `.withCosineGain(...)`
 
 Quick start:
 
 ```java
 import control.feedforward.FeedForward;
 
-FeedForward ff = new FeedForward(0.0, 1.2, 0.3,
-    FeedForward.withGravityGain(9.81),
-    FeedForward.withCosineGain(2.5));
+FeedForward ff = new FeedForward(0.0, 1.2, 0.3)
+    .withGravityGain(9.81)
+    .withCosineGain(2.5);
 
 double u = ff.calculate(Math.PI / 4.0, 1.5, 0.2);
 ```
@@ -155,8 +157,8 @@ Main class: `InterpLUT`
 
 Features:
 
-- Add control points using options pattern with `add(x, y)`
-- Automatically builds monotone cubic spline on construction
+- Add control points using fluent methods (`.withPoint(x, y)`)
+- Build the spline via `.build()` or automatically on first `get()` call
 - Evaluate with `get(input)`
 - Validates duplicate X values and out-of-range requests
 
@@ -165,13 +167,11 @@ Quick start:
 ```java
 import control.interplut.InterpLUT;
 
-import static control.interplut.InterpLUT.add;
-
-InterpLUT lut = new InterpLUT(
-    add(0, 0.0),
-    add(100, 1.0),
-    add(200, 1.8)
-);
+InterpLUT lut = new InterpLUT()
+    .withPoint(0, 0.0)
+    .withPoint(100, 1.0)
+    .withPoint(200, 1.8)
+    .build();
 
 double y = lut.get(150);
 ```

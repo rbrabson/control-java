@@ -6,7 +6,7 @@ public class Main {
     public static void main(String[] args) {
         // Basic PID controller: Kp=4.0, Ki=1.2, Kd=3.0
         // Tuned for fast response with minimal overshoot
-        PID controller = new PID(4.0, 1.2, 3.0, PID.withOutputLimits(-100, 100));
+        PID controller = new PID(4.0, 1.2, 3.0).withOutputLimits(-100, 100);
 
         double setpoint = 50.0;
         double position = 0.0;

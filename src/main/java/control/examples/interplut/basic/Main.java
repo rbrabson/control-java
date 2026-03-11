@@ -2,13 +2,12 @@ package control.examples.interplut.basic;
 
 import control.interplut.InterpLUT;
 
-import static control.interplut.InterpLUT.add;
-
 public class Main {
     public static void main(String[] args) {
         // Interpolated lookup table maps RPM to throttle percentage
         // Common use: non-linear mappings, calibration tables, etc.
-        InterpLUT throttleMap = new InterpLUT(add(0, 0.0), add(1000, 0.2), add(2000, 0.55), add(3000, 1.0));
+        InterpLUT throttleMap = new InterpLUT().withPoint(0, 0.0).withPoint(1000, 0.2).withPoint(2000, 0.55)
+                .withPoint(3000, 1.0).build();
 
         System.out.println("Interpolated Lookup Table (LUT)");
         System.out.println("================================");

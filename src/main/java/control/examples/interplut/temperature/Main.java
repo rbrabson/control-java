@@ -2,17 +2,15 @@ package control.examples.interplut.temperature;
 
 import control.interplut.InterpLUT;
 
-import static control.interplut.InterpLUT.add;
-
 public class Main {
     public static void main(String[] args) {
         // Temperature compensation table for sensor calibration
         // Real sensors often need compensation for ambient temperature effects
-        InterpLUT compensation = new InterpLUT(add(0, 1.0), // 0°C: no compensation needed
-                add(20, 0.95), // Room temp: slight correction
-                add(40, 0.90), // Warm: more correction
-                add(60, 0.82) // Hot: significant correction
-        );
+        InterpLUT compensation = new InterpLUT().withPoint(0, 1.0) // 0°C: no compensation needed
+                .withPoint(20, 0.95) // Room temp: slight correction
+                .withPoint(40, 0.90) // Warm: more correction
+                .withPoint(60, 0.82) // Hot: significant correction
+                .build();
 
         System.out.println("Temperature Compensation Table");
         System.out.println("==============================");

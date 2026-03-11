@@ -1,23 +1,13 @@
 package control.feedforward;
 
-import java.util.function.Consumer;
-
 /**
  * A feedforward controller for calculating the necessary motor output to
  * achieve a desired velocity and acceleration. The controller can be configured
  * with static, velocity, and acceleration gains, as well as optional gravity
- * and cosine gains for more complex systems.
+ * and cosine gains for more complex systems. Configuration is done through
+ * fluent methods that return copies to support method chaining.
  */
 public class FeedForward {
-    /**
-     * An option interface for configuring the feedforward controller with
-     * additional gains or settings. This allows for a flexible and extensible way
-     * to customize the behavior of the feedforward controller without needing to
-     * create multiple constructors or subclasses.
-     */
-    public interface Option extends Consumer<FeedForward> {
-    }
-
     private final double kS;
     private final double kV;
     private final double kA;
@@ -25,58 +15,66 @@ public class FeedForward {
     private double kCos;
 
     /**
-     * Creates a new FeedForward controller with the specified gains and options.
+     * Creates a new FeedForward controller with the specified gains.
      *
-     * @param kS      The static gain, representing the minimum output required to
-     *                overcome static friction.
-     * @param kV      The velocity gain, representing the output required to
-     *                maintain a certain velocity.
-     * @param kA      The acceleration gain, representing the output required to
-     *                achieve a certain acceleration.
-     * @param options Optional configuration options for the feedforward controller,
-     *                such as gravity and cosine gains.
+     * @param kS The static gain, representing the minimum output required to
+     *           overcome static friction.
+     * @param kV The velocity gain, representing the output required to maintain a
+     *           certain velocity.
+     * @param kA The acceleration gain, representing the output required to achieve
+     *           a certain acceleration.
      */
-    public FeedForward(double kS, double kV, double kA, Option... options) {
+    public FeedForward(double kS, double kV, double kA) {
         this.kS = kS;
         this.kV = kV;
         this.kA = kA;
         this.kG = 0.0;
         this.kCos = 0.0;
-
-        for (Option option : options) {
-            option.accept(this);
-        }
     }
 
     /**
-     * Creates an option to set the gravity gain for the feedforward controller.
-     * This gain can be used to compensate for the effect of gravity on the system,
-     * such as when controlling an arm or elevator.
+     * Copy constructor for creating a new FeedForward controller with the same
+     * configuration.
+     *
+     * @param other The FeedForward controller to copy.
+     */
+    private FeedForward(FeedForward other) {
+        this.kS = other.kS;
+        this.kV = other.kV;
+        this.kA = other.kA;
+        this.kG = other.kG;
+        this.kCos = other.kCos;
+    }
+
+    /**
+     * Creates a copy of this FeedForward controller with a gravity gain set. This
+     * gain can be used to compensate for the effect of gravity on the system, such
+     * as when controlling an arm or elevator.
      *
      * @param kG The gravity gain, representing the output required to compensate
      *           for gravity.
-     * @return An option that can be passed to the FeedForward constructor to set
-     *         the gravity gain.
+     * @return A new FeedForward controller with the gravity gain set.
      */
-
-    public static Option withGravityGain(double kG) {
-        return ff -> ff.kG = kG;
+    public FeedForward withGravityGain(double kG) {
+        FeedForward copy = new FeedForward(this);
+        copy.kG = kG;
+        return copy;
     }
 
     /**
-     * Creates an option to set the cosine gain for the feedforward controller. This
+     * Creates a copy of this FeedForward controller with a cosine gain set. This
      * gain can be used to compensate for the effect of position on the system, such
      * as when controlling an arm or elevator that experiences varying loads at
      * different positions.
      *
      * @param kCos The cosine gain, representing the output required to compensate
      *             for position.
-     * @return An option that can be passed to the FeedForward constructor to set
-     *         the cosine gain.
+     * @return A new FeedForward controller with the cosine gain set.
      */
-
-    public static Option withCosineGain(double kCos) {
-        return ff -> ff.kCos = kCos;
+    public FeedForward withCosineGain(double kCos) {
+        FeedForward copy = new FeedForward(this);
+        copy.kCos = kCos;
+        return copy;
     }
 
     /**

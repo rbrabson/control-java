@@ -3,16 +3,14 @@ package control.examples.interplut.adaptive_pid;
 import control.interplut.InterpLUT;
 import control.pid.PID;
 
-import static control.interplut.InterpLUT.add;
-
 public class Main {
     public static void main(String[] args) {
         // Adaptive PID: Kp changes based on error magnitude
         // Larger errors use higher gain for faster response
         // Smaller errors use lower gain for precise settling
-        InterpLUT kpLut = new InterpLUT(add(0, 0.6), // Small error: gentle control
-                add(20, 0.8), add(50, 1.2), add(100, 1.6) // Large error: aggressive control
-        );
+        InterpLUT kpLut = new InterpLUT().withPoint(0, 0.6) // Small error: gentle control
+                .withPoint(20, 0.8).withPoint(50, 1.2).withPoint(100, 1.6) // Large error: aggressive control
+                .build();
 
         System.out.println("Adaptive PID Control");
         System.out.println("====================");
@@ -30,7 +28,7 @@ public class Main {
 
             // Adapt Kp based on error
             double adaptiveKp = kpLut.get(errorMagnitude);
-            PID controller = new PID(adaptiveKp, 0.05, 0.02, PID.withOutputLimits(-50, 50));
+            PID controller = new PID(adaptiveKp, 0.05, 0.02).withOutputLimits(-50, 50);
 
             double output = controller.calculate(setpoint, state);
             state += output * dt;

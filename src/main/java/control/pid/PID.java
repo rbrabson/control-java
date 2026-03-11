@@ -1,7 +1,6 @@
 package control.pid;
 
 import control.filter.Filter;
-import java.util.function.Consumer;
 
 /**
  * A PID (Proportional-Integral-Derivative) controller implementation that
@@ -11,19 +10,9 @@ import java.util.function.Consumer;
  * derivative term, maximum integral sum, output limits, and a filter for
  * smoothing the derivative term. The PID controller is designed to be flexible
  * and adaptable to different control scenarios, allowing for fine-tuning of its
- * behavior through the use of functional options.
+ * behavior through the use of fluent methods that return copies.
  */
 public class PID {
-    /**
-     * Functional interface for configuring optional parameters of the PID
-     * controller. Each option is a lambda that accepts a PID instance and modifies
-     * its configuration. This allows for flexible and readable configuration of the
-     * PID controller when creating an instance, without needing to provide all
-     * parameters in the constructor.
-     */
-    public interface Option extends Consumer<PID> {
-    }
-
     private final double kp;
     private final double ki;
     private double kd;
@@ -43,17 +32,13 @@ public class PID {
     private boolean initialized;
 
     /**
-     * Creates a PID controller with the specified gains and optional configuration
-     * parameters.
+     * Creates a PID controller with the specified gains.
      *
-     * @param kp      The proportional gain.
-     * @param ki      The integral gain.
-     * @param kd      The derivative gain.
-     * @param options Optional configuration parameters for the PID controller.
-     *                These can be used to override the default values of the PID
-     *                controller.
+     * @param kp The proportional gain.
+     * @param ki The integral gain.
+     * @param kd The derivative gain.
      */
-    public PID(double kp, double ki, double kd, Option... options) {
+    public PID(double kp, double ki, double kd) {
         this.kp = kp;
         this.ki = ki;
         this.kd = kd;
@@ -64,154 +49,143 @@ public class PID {
         this.filter = null;
         this.stabilityThreshold = Double.NaN;
         this.integralSumMax = Double.NaN;
-
-        for (Option option : options) {
-            option.accept(this);
-        }
     }
 
     /**
-     * Creates an Option that sets a feedforward term for the PID controller.
+     * Copy constructor for creating a new PID controller with the same
+     * configuration.
+     *
+     * @param other The PID controller to copy.
+     */
+    private PID(PID other) {
+        this.kp = other.kp;
+        this.ki = other.ki;
+        this.kd = other.kd;
+        this.feedForward = other.feedForward;
+        this.integralResetOnZeroCross = other.integralResetOnZeroCross;
+        this.stabilityThreshold = other.stabilityThreshold;
+        this.integralSumMax = other.integralSumMax;
+        this.outputMin = other.outputMin;
+        this.outputMax = other.outputMax;
+        this.filter = other.filter;
+        this.integral = other.integral;
+        this.lastReference = other.lastReference;
+        this.lastError = other.lastError;
+        this.prevTimeNanos = other.prevTimeNanos;
+        this.initialized = other.initialized;
+    }
+
+    /**
+     * Creates a copy of this PID controller with a feedforward term.
      *
      * @param feedForward The feedforward term to be added to the output of the PID
      *                    controller.
-     * @return An Option that sets the feedForward term of the PID controller to the
-     *         specified value.
+     * @return A new PID controller with the feedforward term set.
      */
-    public static Option withFeedForward(double feedForward) {
-        return p -> p.feedForward = feedForward;
+    public PID withFeedForward(double feedForward) {
+        PID copy = new PID(this);
+        copy.feedForward = feedForward;
+        return copy;
     }
 
     /**
-     * Creates an Option that enables integral reset on zero crossing. When enabled,
-     * the integral term will be reset to zero whenever the error crosses zero
-     * (i.e., when the system transitions from being above the target to below the
-     * target, or vice versa). This can help prevent integral windup and improve
-     * stability in certain scenarios where the system may oscillate around the
-     * target.
+     * Creates a copy of this PID controller with integral reset on zero crossing
+     * enabled. When enabled, the integral term will be reset to zero whenever the
+     * error crosses zero (i.e., when the system transitions from being above the
+     * target to below the target, or vice versa).
      *
-     * @return An Option that sets the integralResetOnZeroCross flag of the PID
-     *         controller to true, which will reset the integral term whenever the
-     *         error crosses zero
+     * @return A new PID controller with integral reset on zero crossing enabled.
      */
-    public static Option withIntegralResetOnZeroCross() {
-        return p -> p.integralResetOnZeroCross = true;
+    public PID withIntegralResetOnZeroCross() {
+        PID copy = new PID(this);
+        copy.integralResetOnZeroCross = true;
+        return copy;
     }
 
     /**
-     * Creates an Option that sets the stability threshold for the PID controller.
-     * The stability threshold is used to determine when the derivative term should
-     * be calculated. If the absolute value of the raw derivative exceeds the
-     * stability threshold, the integral term will not be updated. This can help
-     * prevent integral windup and improve stability in scenarios where the system
-     * may experience rapid changes or noise that could cause large derivative
-     * values.
+     * Creates a copy of this PID controller with a stability threshold. The
+     * stability threshold is used to determine when the derivative term should be
+     * calculated. If the absolute value of the raw derivative exceeds the stability
+     * threshold, the integral term will not be updated.
      *
      * @param threshold The stability threshold value.
-     * @return An Option that sets the stability threshold of the PID controller to
-     *         the specified value.
+     * @return A new PID controller with the stability threshold set.
      */
-    public static Option withStabilityThreshold(double threshold) {
-        return p -> p.stabilityThreshold = Math.abs(threshold);
+    public PID withStabilityThreshold(double threshold) {
+        PID copy = new PID(this);
+        copy.stabilityThreshold = Math.abs(threshold);
+        return copy;
     }
 
     /**
-     * Creates an Option that sets the maximum absolute value for the integral sum.
-     * If the integral sum exceeds this value, it will be clamped to the maximum.
-     * This can help prevent integral windup and improve stability in scenarios
-     * where the system may experience sustained errors that could cause the
-     * integral term to grow excessively large.
+     * Creates a copy of this PID controller with a maximum integral sum. If the
+     * integral sum exceeds this value, it will be clamped to the maximum.
      *
      * @param maxSum The maximum absolute value for the integral sum.
-     * @return An Option that sets the integralSumMax of the PID controller to the
-     *         specified value.
+     * @return A new PID controller with the integral sum max set.
      */
-    public static Option withIntegralSumMax(double maxSum) {
-        return p -> p.integralSumMax = Math.abs(maxSum);
+    public PID withIntegralSumMax(double maxSum) {
+        PID copy = new PID(this);
+        copy.integralSumMax = Math.abs(maxSum);
+        return copy;
     }
 
     /**
-     * Creates an Option that sets the filter to be used for smoothing the
-     * derivative term. The filter will be applied to the raw derivative value
-     * before it is multiplied by the derivative gain (kd). This can help reduce
-     * noise and improve stability in scenarios where the system may experience
-     * rapid changes or noise that could cause large derivative values.
+     * Creates a copy of this PID controller with a filter for the derivative term.
+     * The filter will be applied to the raw derivative value before it is
+     * multiplied by the derivative gain (kd).
      *
      * @param filter The filter to be used for smoothing the derivative term.
-     * @return An Option that sets the filter of the PID controller to the specified
-     *         filter instance.
+     * @return A new PID controller with the filter set.
      */
-    public static Option withFilter(Filter filter) {
-        return p -> p.filter = filter;
+    public PID withFilter(Filter filter) {
+        PID copy = new PID(this);
+        copy.filter = filter;
+        return copy;
     }
 
     /**
-     * Creates an Option that sets the output limits for the PID controller. The
-     * output of the PID controller will be clamped to the specified minimum and
-     * maximum values. This can help prevent the output from exceeding the physical
-     * limits of the system or causing instability due to excessively large outputs.
+     * Creates a copy of this PID controller with output limits. The output of the
+     * PID controller will be clamped to the specified minimum and maximum values.
      *
      * @param min The minimum output value for the PID controller.
      * @param max The maximum output value for the PID controller.
-     * @return An Option that sets the output limits of the PID controller to the
-     *         specified minimum and maximum values.
+     * @return A new PID controller with the output limits set.
      */
-    public static Option withOutputLimits(double min, double max) {
-        return p -> {
-            if (min <= max) {
-                p.outputMin = min;
-                p.outputMax = max;
-            }
-        };
+    public PID withOutputLimits(double min, double max) {
+        PID copy = new PID(this);
+        if (min <= max) {
+            copy.outputMin = min;
+            copy.outputMax = max;
+        }
+        return copy;
     }
 
     /**
-     * Creates an Option that sets the PID gains based on a damped
+     * Creates a copy of this PID controller with PID gains based on a damped
      * spring-mass-damper system model. The gains are calculated based on the
-     * specified spring stiffness (ka), mass (kv), and percent overshoot (po). This
-     * can help simplify the tuning process by providing a systematic way to
-     * calculate the PID gains based on the desired dynamic response of the system.
+     * specified spring stiffness (ka), mass (kv), and percent overshoot (po).
      *
      * @param ka The spring stiffness, which represents the proportional gain (kp)
-     *           of the system. A higher ka will result in a stronger proportional
-     *           response to errors, which can help reduce steady-state error and
-     *           improve responsiveness. However, if ka is too high, it can lead to
-     *           overshooting and oscillations.
-     * @param kv The mass, which represents the derivative gain (kd) of the system.
-     *           A higher kv will result in a stronger derivative response to
-     *           changes in error, which can help dampen oscillations and improve
-     *           stability. However, if kv is too high, it can lead to excessive
-     *           damping and slow response.
-     * @param po The percent overshoot, which is used to calculate the damping ratio
-     *           (zeta) of the system. A higher po will result in a less damped
-     *           system with more overshoot, while a lower po will result in a more
-     *           damped system with less overshoot. The po value should be between 0
-     *           and 100, where 0 represents a critically damped system with no
-     *           overshoot, and 100 represents an undamped system with maximum
-     *           overshoot. If po is set to 0, the derivative gain (kd) will be
-     *           calculated for critical damping, which can help achieve a fast
-     *           response without overshooting. If po is greater than 0, the
-     *           derivative gain will be calculated based on the specified percent
-     *           overshoot, which can help achieve a desired level of damping and
-     *           overshoot in the system's response.
-     * @return An Option that sets the PID gains of the controller based on the
-     *         specified spring stiffness, mass,
+     * @param kv The mass, which represents the derivative gain (kd)
+     * @param po The percent overshoot, used to calculate the damping ratio (zeta)
+     * @return A new PID controller with the derivative gain set based on dampening.
      */
-    public static Option withDampening(double ka, double kv, double po) {
-        return p -> {
-            if (p.kp < kv * kv / 4 * ka) {
-                return;
-            }
+    public PID withDampening(double ka, double kv, double po) {
+        PID copy = new PID(this);
+        if (copy.kp < kv * kv / 4 * ka) {
+            return copy;
+        }
 
-            if (po == 0) {
-                p.kd = 2 * Math.sqrt(ka * kv) - ka;
-            } else {
-                double boundedPo = Math.max(po / 100.0, 0.01);
-                double poLog = Math.log(boundedPo);
-                double zeta = -poLog / Math.sqrt(Math.PI * Math.PI + poLog * poLog);
-                p.kd = 2 * zeta * Math.sqrt(ka * kv) - kv;
-            }
-        };
+        if (po == 0) {
+            copy.kd = 2 * Math.sqrt(ka * kv) - ka;
+        } else {
+            double boundedPo = Math.max(po / 100.0, 0.01);
+            double poLog = Math.log(boundedPo);
+            double zeta = -poLog / Math.sqrt(Math.PI * Math.PI + poLog * poLog);
+            copy.kd = 2 * zeta * Math.sqrt(ka * kv) - kv;
+        }
+        return copy;
     }
 
     /**

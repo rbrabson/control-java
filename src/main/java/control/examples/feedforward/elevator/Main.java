@@ -5,7 +5,7 @@ import control.feedforward.FeedForward;
 public class Main {
     public static void main(String[] args) {
         // Elevator feedforward with gravity compensation (kg = 9.81 m/s²)
-        FeedForward elevatorWithGravity = new FeedForward(0.0, 0.9, 0.2, FeedForward.withGravityGain(9.81));
+        FeedForward elevatorWithGravity = new FeedForward(0.0, 0.9, 0.2).withGravityGain(9.81);
         FeedForward elevatorNoGravity = new FeedForward(0.0, 0.9, 0.2);
 
         System.out.println("Elevator Feedforward Control");

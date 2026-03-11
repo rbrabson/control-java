@@ -9,8 +9,8 @@ public class Main {
         double feedForward = ambient * 0.02;
 
         // Temperature control with realistic thermal dynamics
-        PID controller = new PID(0.5, 0.1, 0.02, PID.withFeedForward(feedForward), PID.withIntegralResetOnZeroCross(),
-                PID.withFilter(new LowPassFilter(0.8)), PID.withOutputLimits(0.0, 1.0));
+        PID controller = new PID(0.5, 0.1, 0.02).withFeedForward(feedForward).withIntegralResetOnZeroCross()
+                .withFilter(new LowPassFilter(0.8)).withOutputLimits(0.0, 1.0);
 
         double setpoint = 70.0;
         double temp = ambient;

@@ -6,7 +6,7 @@ public class Main {
     public static void main(String[] args) {
         // Arm feedforward with cosine compensation for gravity (kg = 2.5 N·m)
         // The cosine gain compensates for gravity's varying effect at different angles
-        FeedForward armWithGravity = new FeedForward(0.0, 1.0, 0.2, FeedForward.withCosineGain(2.5));
+        FeedForward armWithGravity = new FeedForward(0.0, 1.0, 0.2).withCosineGain(2.5);
         FeedForward armNoGravity = new FeedForward(0.0, 1.0, 0.2);
 
         System.out.println("Robotic Arm Feedforward Control");

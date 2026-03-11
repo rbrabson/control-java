@@ -7,8 +7,7 @@ public class Main {
         // Crane with both gravity (vertical lift) and cosine (boom angle) compensation
         // kg = constant gravity for lifting load
         // kc = cosine compensation for boom angle (horizontal position affects torque)
-        FeedForward craneFF = new FeedForward(0.0, 1.1, 0.25, FeedForward.withGravityGain(15.7),
-                FeedForward.withCosineGain(8.2));
+        FeedForward craneFF = new FeedForward(0.0, 1.1, 0.25).withGravityGain(15.7).withCosineGain(8.2);
 
         System.out.println("Crane Feedforward Control");
         System.out.println("==========================");

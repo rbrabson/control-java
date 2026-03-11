@@ -4,8 +4,6 @@ import control.feedforward.FeedForward;
 
 public class Main {
     public static void main(String[] args) {
-        // Basic feedforward: ks=0.0, kv=1.2, ka=0.3
-        // Output = ks + kv*velocity + ka*acceleration
         FeedForward ff = new FeedForward(0.0, 1.2, 0.3);
 
         System.out.println("Basic Feedforward Control");

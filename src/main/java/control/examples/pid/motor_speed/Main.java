@@ -7,9 +7,8 @@ public class Main {
     public static void main(String[] args) {
         // Motor speed control with filtering and advanced PID features
         // Gains scaled for RPM: small gains since errors are in hundreds/thousands
-        PID controller = new PID(0.0004, 0.00025, 0.0001, PID.withIntegralSumMax(2000.0),
-                PID.withStabilityThreshold(200.0), PID.withFilter(new LowPassFilter(0.9)),
-                PID.withOutputLimits(-1.0, 1.0));
+        PID controller = new PID(0.0004, 0.00025, 0.0001).withIntegralSumMax(2000.0).withStabilityThreshold(200.0)
+                .withFilter(new LowPassFilter(0.9)).withOutputLimits(-1.0, 1.0);
 
         double setpointRpm = 2000.0;
         double speed = 0.0;

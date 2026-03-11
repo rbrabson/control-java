@@ -6,7 +6,7 @@ public class Main {
     public static void main(String[] args) {
         // Servo position control with proportional-only control
         // For direct velocity control, P-only is often sufficient
-        PID controller = new PID(1.0, 0.0, 0.0, PID.withOutputLimits(-1.0, 1.0));
+        PID controller = new PID(1.0, 0.0, 0.0).withOutputLimits(-1.0, 1.0);
 
         double targetDeg = 90.0;
         double position = 0.0;
