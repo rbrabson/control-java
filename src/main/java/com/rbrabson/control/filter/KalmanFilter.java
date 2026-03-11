@@ -162,7 +162,7 @@ public class KalmanFilter implements Filter {
         double convergedK = k;
 
         x = 0.0;
-        estimates = new SizedStack<>(n);
+        estimates = new SizedStack<Double>(n);
         for (int i = 0; i < n; i++) {
             estimates.push(0.0);
         }
