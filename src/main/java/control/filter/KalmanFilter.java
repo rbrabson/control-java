@@ -100,7 +100,7 @@ public class KalmanFilter implements Filter {
      * @return the process noise covariance of the filter
      */
     @Override
-    public double getGain() {
+    public double getAlpha() {
         return k;
     }
 

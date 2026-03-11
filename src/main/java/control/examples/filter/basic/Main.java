@@ -28,7 +28,7 @@ public class Main {
             double error = Math.abs(trueValue - estimate);
 
             System.out.printf("%4d     %8.1f     %8.3f     %8.3f     %8.3f     %8.4f%n", i + 1, trueValue, measurement,
-                    estimate, error, kf.getGain());
+                    estimate, error, kf.getAlpha());
         }
 
         System.out.println("\nNote: This filter uses linear regression to predict the next value based on trend");

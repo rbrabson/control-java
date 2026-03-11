@@ -58,7 +58,7 @@ public class LowPassFilter implements Filter {
      * @return The alpha value, which is between 0 and 1 (exclusive).
      */
     @Override
-    public double getGain() {
+    public double getAlpha() {
         return alpha;
     }
 

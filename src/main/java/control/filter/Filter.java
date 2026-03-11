@@ -36,5 +36,5 @@ public interface Filter {
      * @return The current gain of the filter, indicating its responsiveness to new
      *         measurements.
      */
-    double getGain();
+    double getAlpha();
 }
