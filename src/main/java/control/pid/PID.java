@@ -83,9 +83,8 @@ public class PID {
      * @return A new PID controller with the feedforward term set.
      */
     public PID withFeedForward(double feedForward) {
-        PID copy = new PID(this);
-        copy.feedForward = feedForward;
-        return copy;
+        this.feedForward = feedForward;
+        return this;
     }
 
     /**
@@ -97,9 +96,8 @@ public class PID {
      * @return A new PID controller with integral reset on zero crossing enabled.
      */
     public PID withIntegralResetOnZeroCross() {
-        PID copy = new PID(this);
-        copy.integralResetOnZeroCross = true;
-        return copy;
+        this.integralResetOnZeroCross = true;
+        return this;
     }
 
     /**
@@ -112,9 +110,8 @@ public class PID {
      * @return A new PID controller with the stability threshold set.
      */
     public PID withStabilityThreshold(double threshold) {
-        PID copy = new PID(this);
-        copy.stabilityThreshold = Math.abs(threshold);
-        return copy;
+        this.stabilityThreshold = Math.abs(threshold);
+        return this;
     }
 
     /**
@@ -125,9 +122,8 @@ public class PID {
      * @return A new PID controller with the integral sum max set.
      */
     public PID withIntegralSumMax(double maxSum) {
-        PID copy = new PID(this);
-        copy.integralSumMax = Math.abs(maxSum);
-        return copy;
+        this.integralSumMax = Math.abs(maxSum);
+        return this;
     }
 
     /**
@@ -139,9 +135,8 @@ public class PID {
      * @return A new PID controller with the filter set.
      */
     public PID withFilter(Filter filter) {
-        PID copy = new PID(this);
-        copy.filter = filter;
-        return copy;
+        this.filter = filter;
+        return this;
     }
 
     /**
@@ -153,12 +148,11 @@ public class PID {
      * @return A new PID controller with the output limits set.
      */
     public PID withOutputLimits(double min, double max) {
-        PID copy = new PID(this);
         if (min <= max) {
-            copy.outputMin = min;
-            copy.outputMax = max;
+            this.outputMin = min;
+            this.outputMax = max;
         }
-        return copy;
+        return this;
     }
 
     /**
@@ -172,20 +166,19 @@ public class PID {
      * @return A new PID controller with the derivative gain set based on dampening.
      */
     public PID withDampening(double ka, double kv, double po) {
-        PID copy = new PID(this);
-        if (copy.kp < kv * kv / 4 * ka) {
-            return copy;
+        if (this.kp < kv * kv / 4 * ka) {
+            return this;
         }
 
         if (po == 0) {
-            copy.kd = 2 * Math.sqrt(ka * kv) - ka;
+            this.kd = 2 * Math.sqrt(ka * kv) - ka;
         } else {
             double boundedPo = Math.max(po / 100.0, 0.01);
             double poLog = Math.log(boundedPo);
             double zeta = -poLog / Math.sqrt(Math.PI * Math.PI + poLog * poLog);
-            copy.kd = 2 * zeta * Math.sqrt(ka * kv) - kv;
+            this.kd = 2 * zeta * Math.sqrt(ka * kv) - kv;
         }
-        return copy;
+        return this;
     }
 
     /**
@@ -270,7 +263,7 @@ public class PID {
     /**
      * Calculates the proportional term of the PID controller based on the given
      * error and the proportional gain (kp).
-     * 
+     *
      * @param error The current error value, which is the difference between the
      *              reference and the state.
      * @return The calculated proportional term, which is the product of the error
@@ -310,7 +303,7 @@ public class PID {
     /**
      * Calculates the derivative term of the PID controller based on the given
      * error, time delta (dt), and the derivative gain (kd).
-     * 
+     *
      * @param error The current error value, which is the difference between the
      *              reference and the state.
      * @param dt    The time delta in seconds since the last calculation.
@@ -325,7 +318,7 @@ public class PID {
     /**
      * Calculates the raw derivative of the error based on the change in error and
      * the time delta (dt).
-     * 
+     *
      * @param error The current error value, which is the difference between the
      *              reference and the state.
      * @param dt    The time delta in seconds since the last calculation.
@@ -376,9 +369,6 @@ public class PID {
         if (value < min) {
             return min;
         }
-        if (value > max) {
-            return max;
-        }
-        return value;
+        return Math.min(value, max);
     }
 }

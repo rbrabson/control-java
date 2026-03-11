@@ -56,9 +56,8 @@ public class FeedForward {
      * @return A new FeedForward controller with the gravity gain set.
      */
     public FeedForward withGravityGain(double kG) {
-        FeedForward copy = new FeedForward(this);
-        copy.kG = kG;
-        return copy;
+        this.kG = kG;
+        return this;
     }
 
     /**
@@ -72,9 +71,8 @@ public class FeedForward {
      * @return A new FeedForward controller with the cosine gain set.
      */
     public FeedForward withCosineGain(double kCos) {
-        FeedForward copy = new FeedForward(this);
-        copy.kCos = kCos;
-        return copy;
+        this.kCos = kCos;
+        return this;
     }
 
     /**
