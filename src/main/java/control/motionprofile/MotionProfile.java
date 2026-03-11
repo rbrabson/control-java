@@ -44,8 +44,9 @@ public class MotionProfile {
      */
     private void calculateProfile() {
         double displacement = goal.position - initial.position;
-
         double decelerationTime;
+
+        // Handle the case where there is no displacement
         if (Math.abs(displacement) < 1e-10) {
             totalTime = Math.abs(goal.velocity - initial.velocity) / constraints.maxAcceleration;
             accelerationTime = totalTime;
@@ -65,6 +66,7 @@ public class MotionProfile {
         double decelDist = (vEnd * vEnd - maxVel * maxVel) / (-2 * constraints.maxAcceleration * direction);
 
         if (direction * (accelDist + decelDist) <= direction * displacement) {
+            // There is a cruising phase
             accelerationTime = (maxVel - vStart) / (constraints.maxAcceleration * direction);
             decelerationTime = (vEnd - maxVel) / (-constraints.maxAcceleration * direction);
             cruiseVelocity = maxVel;
@@ -72,6 +74,7 @@ public class MotionProfile {
             cruiseDistance = displacement - accelDist - decelDist;
             cruiseTime = cruiseDistance / maxVel;
         } else {
+            // No cruising phase; triangle profile
             double discriminant = vStart * vStart + vEnd * vEnd
                     + 2 * constraints.maxAcceleration * displacement * direction;
             if (discriminant < 0) {
@@ -80,6 +83,7 @@ public class MotionProfile {
                 return;
             }
 
+            // Calculate peak velocity
             double peakVel = direction * Math.sqrt(discriminant / 2);
             cruiseVelocity = peakVel;
             accelerationTime = (peakVel - vStart) / (constraints.maxAcceleration * direction);
@@ -119,15 +123,18 @@ public class MotionProfile {
         double acceleration;
 
         if (t <= accelerationTime) {
+            // Acceleration phase
             acceleration = constraints.maxAcceleration * direction;
             velocity = initial.velocity + acceleration * t;
             position = initial.position + initial.velocity * t + 0.5 * acceleration * t * t;
         } else if (t <= accelerationTime + cruiseTime) {
+            // Cruising phase
             acceleration = 0;
             velocity = cruiseVelocity;
             double cruiseT = t - accelerationTime;
             position = initial.position + accelerationDistance + cruiseVelocity * cruiseT;
         } else {
+            // Deceleration phase
             double decelT = t - accelerationTime - cruiseTime;
             acceleration = -constraints.maxAcceleration * direction;
             velocity = cruiseVelocity + acceleration * decelT;
