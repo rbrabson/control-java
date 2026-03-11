@@ -42,7 +42,7 @@ public class KalmanFilter implements Filter {
         this.p = 1.0;
         this.k = 0.0;
         this.x = 0.0;
-        this.estimates = new SizedStack<>(n);
+        this.estimates = new SizedStack<Double>(n);
         reset();
 
         for (int i = 0; i < n; i++) {

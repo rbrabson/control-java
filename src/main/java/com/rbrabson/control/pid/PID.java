@@ -179,7 +179,7 @@ public class PID {
             prevTimeNanos = now;
         }
 
-        double dt = (now - prevTimeNanos) / 1_000_000_000.0;
+        double dt = (now - prevTimeNanos) / 1000000000.0;
         prevTimeNanos = now;
 
         return calculate(reference, state, dt);

@@ -12,9 +12,9 @@ import java.util.List;
  * done through fluent methods that return copies to support method chaining.
  */
 public class InterpLUT {
-    private final List<Double> x = new ArrayList<>();
-    private final List<Double> y = new ArrayList<>();
-    private final List<Double> m = new ArrayList<>();
+    private final List<Double> x = new ArrayList<Double>();
+    private final List<Double> y = new ArrayList<Double>();
+    private final List<Double> m = new ArrayList<Double>();
 
     /**
      * Creates a new InterpLUT without any control points. Use withPoint() to add
@@ -78,7 +78,7 @@ public class InterpLUT {
         for (int i = 0; i < x.size(); i++) {
             points.add(new Point(x.get(i), y.get(i)));
         }
-        points.sort(Comparator.comparingDouble(Point::x));
+        points.sort(Comparator.comparingDouble(p -> p.x()));
 
         int n = points.size();
         double[] sx = new double[n];
