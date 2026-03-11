@@ -74,11 +74,16 @@ public class InterpLUT {
                     "there must be at least two control points and the arrays must be of equal length");
         }
 
-        List<Point> points = new ArrayList<>(x.size());
+        List<Point> points = new ArrayList<Point>(x.size());
         for (int i = 0; i < x.size(); i++) {
             points.add(new Point(x.get(i), y.get(i)));
         }
-        points.sort(Comparator.comparingDouble(p -> p.x()));
+        points.sort(new Comparator<Point>() {
+            @Override
+            public int compare(Point a, Point b) {
+                return Double.compare(a.x(), b.x());
+            }
+        });
 
         int n = points.size();
         double[] sx = new double[n];

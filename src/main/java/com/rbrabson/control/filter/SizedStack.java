@@ -26,7 +26,7 @@ public class SizedStack<T> {
             throw new IllegalArgumentException("capacity must be positive");
         }
         this.capacity = capacity;
-        this.data = new ArrayList<>(capacity);
+        this.data = new ArrayList<T>(capacity);
     }
 
     /**
@@ -94,6 +94,6 @@ public class SizedStack<T> {
      *         oldest to most recent.
      */
     public List<T> toList() {
-        return new ArrayList<>(data);
+        return new ArrayList<T>(data);
     }
 }
