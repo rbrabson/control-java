@@ -81,7 +81,7 @@ public class InterpLUT {
         points.sort(new Comparator<Point>() {
             @Override
             public int compare(Point a, Point b) {
-                return Double.compare(a.x(), b.x());
+                return Double.compare(a.x, b.y);
             }
         });
 
@@ -89,8 +89,8 @@ public class InterpLUT {
         double[] sx = new double[n];
         double[] sy = new double[n];
         for (int i = 0; i < n; i++) {
-            sx[i] = points.get(i).x();
-            sy[i] = points.get(i).y();
+            sx[i] = points.get(i).x;
+            sy[i] = points.get(i).y;
         }
 
         for (int i = 0; i < n - 1; i++) {
@@ -214,21 +214,22 @@ public class InterpLUT {
         return str.toString();
     }
 
+    /**
+     * A simple class representing a point with x and y coordinates.
+     */
     private static final class Point {
-        private final double x;
-        private final double y;
+        public final double x;
+        public final double y;
 
+        /**
+         * Constructs a Point with the given x and y coordinates.
+         * 
+         * @param x The x-coordinate of the point.
+         * @param y The y-coordinate of the point.
+         */
         private Point(double x, double y) {
             this.x = x;
             this.y = y;
-        }
-
-        private double x() {
-            return x;
-        }
-
-        private double y() {
-            return y;
         }
     }
 }
