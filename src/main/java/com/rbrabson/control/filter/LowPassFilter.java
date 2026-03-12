@@ -53,16 +53,6 @@ public class LowPassFilter implements Filter {
     }
 
     /**
-     * Returns the current alpha smoothing factor of the filter.
-     *
-     * @return The alpha value, which is between 0 and 1 (exclusive).
-     */
-    @Override
-    public double getAlpha() {
-        return alpha;
-    }
-
-    /**
      * Sets the alpha smoothing factor of the filter. Alpha must be between 0 and 1
      * (exclusive). Higher alpha gives more weight to new measurements (less
      * smoothing, faster response), while lower alpha gives more weight to the

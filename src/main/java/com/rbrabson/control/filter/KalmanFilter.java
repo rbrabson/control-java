@@ -94,17 +94,6 @@ public class KalmanFilter implements Filter {
     }
 
     /**
-     * Returns the process noise covariance (q) of the filter, which represents the
-     * uncertainty in the system's dynamics.
-     *
-     * @return the process noise covariance of the filter
-     */
-    @Override
-    public double getAlpha() {
-        return k;
-    }
-
-    /**
      * Estimates the current state based on the provided measurement. The method
      * first runs a linear regression on the recent estimates to predict the next
      * value, then updates the state estimate (x) using the Kalman gain (k) and the
