@@ -6,7 +6,7 @@ public class Main {
     public static void main(String[] args) {
         // Compare three different feedforward configurations
         FeedForward basic = new FeedForward(0.0, 1.0, 0.2);
-        FeedForward elevator = new FeedForward(0.0, 1.0, 0.2).withGravityGain(9.81);
+        FeedForward elevator = new FeedForward(0.01, 1.0, 0.2);
         FeedForward arm = new FeedForward(0.0, 1.0, 0.2).withCosineGain(2.5);
 
         System.out.println("Feedforward Configuration Comparison");

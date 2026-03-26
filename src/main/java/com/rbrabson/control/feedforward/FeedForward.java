@@ -11,6 +11,7 @@ public class FeedForward {
     private final double kS;
     private final double kV;
     private final double kA;
+    private double kG;
     private double kCos;
 
     /**
@@ -27,7 +28,9 @@ public class FeedForward {
         this.kS = kS;
         this.kV = kV;
         this.kA = kA;
+        this.kG = 0.0;
         this.kCos = 0.0;
+
     }
 
     /**
@@ -42,6 +45,20 @@ public class FeedForward {
      */
     public FeedForward withCosineGain(double kCos) {
         this.kCos = kCos;
+        return this;
+    }
+
+    /**
+     * Creates a copy of this FeedForward controller with a gravity gain set. This
+     * gain can be used to compensate for the effect of gravity on the system, such
+     * as when controlling an arm or elevator.
+     *
+     * @param kG The gravity gain, representing the output required to compensate
+     *           for gravity.
+     * @return A new FeedForward controller with the gravity gain set.
+     */
+    public FeedForward withGravityGain(double kG) {
+        this.kG = kG;
         return this;
     }
 
@@ -63,9 +80,16 @@ public class FeedForward {
      *         for static friction, gravity, and position effects as configured.
      */
     public double calculate(double position, double velocity, double acceleration) {
-        double output = kS;
+        double output = 0.0;
+        // Static gain (kS) is only applied if velocity or acceleration is nonzero
+        if (velocity != 0.0) {
+            output += Math.copySign(kS, velocity);
+        } else if (acceleration != 0.0) {
+            output += Math.copySign(kS, acceleration);
+        }
         output += kV * velocity;
         output += kA * acceleration;
+        output += kG;
         if (kCos != 0.0) {
             output += kCos * Math.cos(position);
         }
