@@ -20,6 +20,19 @@ public class FeedForward {
      *           overcome static friction.
      * @param kV The velocity gain, representing the output required to maintain a
      *           certain velocity.
+     */
+    public FeedForward(double kS, double kV) {
+        this(kS, kV, 0.0);
+
+    }
+
+    /**
+     * Creates a new FeedForward controller with the specified gains.
+     *
+     * @param kS The static gain, representing the minimum output required to
+     *           overcome static friction.
+     * @param kV The velocity gain, representing the output required to maintain a
+     *           certain velocity.
      * @param kA The acceleration gain, representing the output required to achieve
      *           a certain acceleration.
      */
@@ -44,6 +57,24 @@ public class FeedForward {
     public FeedForward withCosineGain(double kCos) {
         this.kCos = kCos;
         return this;
+    }
+
+    /**
+     * Calculates the feedforward output based on the current position, velocity,
+     * and acceleration. The output is calculated using the formula:
+     *
+     * @param position The current position of the system, which can be used to
+     *                 calculate the effect of position on the output if a cosine
+     *                 gain is configured.
+     * @param velocity The desired velocity of the system, which is multiplied by
+     *                 the velocity gain to calculate the velocity component of the
+     *                 output.
+     * @return The calculated feedforward output, which can be applied to the motors
+     *         to achieve the desired acceleration while compensating for static
+     *         friction, and position effects as configured.
+     */
+    public double calculate(double position, double velocity) {
+        return calculate(position, velocity, 0.0);
     }
 
     /**
