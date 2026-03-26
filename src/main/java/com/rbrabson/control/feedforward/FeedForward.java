@@ -3,9 +3,9 @@ package com.rbrabson.control.feedforward;
 /**
  * A feedforward controller for calculating the necessary motor output to
  * achieve a desired velocity and acceleration. The controller can be configured
- * with static, velocity, and acceleration gains, as well as optional gravity
- * and cosine gains for more complex systems. Configuration is done through
- * fluent methods that return copies to support method chaining.
+ * with static, velocity, and acceleration gains, as cosine gains for more
+ * complex systems. Configuration is done through fluent methods that return
+ * copies to support method chaining.
  */
 public class FeedForward {
     private final double kS;
