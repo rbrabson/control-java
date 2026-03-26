@@ -60,8 +60,7 @@ public class FeedForward {
     }
 
     /**
-     * Calculates the feedforward output based on the current position, velocity,
-     * and acceleration. The output is calculated using the formula:
+     * Calculates the feedforward output based on the current position and velocity.
      *
      * @param position The current position of the system, which can be used to
      *                 calculate the effect of position on the output if a cosine
@@ -79,7 +78,7 @@ public class FeedForward {
 
     /**
      * Calculates the feedforward output based on the current position, velocity,
-     * and acceleration. The output is calculated using the formula:
+     * and acceleration.
      *
      * @param position     The current position of the system, which can be used to
      *                     calculate the effect of position on the output if a
