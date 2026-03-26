@@ -61,7 +61,7 @@ public class FeedForward {
      *                     acceleration component of the output.
      * @return The calculated feedforward output, which can be applied to the motors
      *         to achieve the desired velocity and acceleration while compensating
-     *         for static friction, gravity, and position effects as configured.
+     *         for static friction, and position effects as configured.
      */
     public double calculate(double position, double velocity, double acceleration) {
         double output = kS + kV * velocity + kA * acceleration;
