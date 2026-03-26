@@ -32,7 +32,28 @@ public class PID {
     private boolean initialized;
 
     /**
-     * Creates a PID controller with the specified gains.
+     * Creates a PID controller with the specified proportional gain (kp).
+     *
+     * @param kp The proportional gain.
+     */
+    public PID(double kp) {
+        this(kp, 0.0, 0.0);
+    }
+
+    /**
+     * Creates a PID controller with the specified proportional gain (kp) and
+     * derivative gain (kd).
+     *
+     * @param kp The proportional gain.
+     * @param kd The derivative gain.
+     */
+    public PID(double kp, double kd) {
+        this(kp, 0.0, kd);
+    }
+
+    /**
+     * Creates a PID controller with the specified proportional gain (kp), integral
+     * gain (ki), and derivative gain (kd).
      *
      * @param kp The proportional gain.
      * @param ki The integral gain.
