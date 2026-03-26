@@ -80,19 +80,11 @@ public class FeedForward {
      *         for static friction, gravity, and position effects as configured.
      */
     public double calculate(double position, double velocity, double acceleration) {
-        double output = 0.0;
-        // Static gain (kS) is only applied if velocity or acceleration is nonzero
-        if (velocity != 0.0) {
-            output += Math.copySign(kS, velocity);
-        } else if (acceleration != 0.0) {
-            output += Math.copySign(kS, acceleration);
-        }
-        output += kV * velocity;
-        output += kA * acceleration;
-        output += kG;
+        double output = kS + kV * velocity + kA * acceleration;
         if (kCos != 0.0) {
             output += kCos * Math.cos(position);
         }
+
         return output;
     }
 
