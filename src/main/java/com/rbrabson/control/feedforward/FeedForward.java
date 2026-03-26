@@ -17,6 +17,15 @@ public class FeedForward {
      * Creates a new FeedForward controller with the specified gains.
      *
      * @param kS The static gain, representing the minimum output required to
+     */
+    public FeedForward(double kS) {
+        this(kS, 0.0, 0.0);
+    }
+
+    /**
+     * Creates a new FeedForward controller with the specified gains.
+     *
+     * @param kS The static gain, representing the minimum output required to
      *           overcome static friction.
      * @param kV The velocity gain, representing the output required to maintain a
      *           certain velocity.
@@ -130,5 +139,15 @@ public class FeedForward {
      */
     public double getKA() {
         return kA;
+    }
+
+    /**
+     * Gets the cosine gain of the feedforward controller, which represents the
+     * output required to compensate for position effects on the system.
+     * 
+     * @return The cosine gain of the feedforward controller.
+     */
+    public double getKCos() {
+        return kCos;
     }
 }
