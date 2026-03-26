@@ -90,12 +90,11 @@ Main class: `FeedForward`
 
 Model:
 
-- `kV * velocity + kA * acceleration + kG + kCos * cos(position)`
+- `kV * velocity + kA * acceleration + kCos * cos(position)`
 
-Configurable via fluent methods:
+Configurable via fluent method:
 
-- `.withGravityGain(...)`
-- `.withCosineGain(...)`
+- `.withCosineGain(...)` (for gravity/cosine compensation)
 
 Quick start:
 
@@ -103,7 +102,6 @@ Quick start:
 import com.rbrabson.control.feedforward.FeedForward;
 
 FeedForward ff = new FeedForward(0.0, 1.2, 0.3)
-    .withGravityGain(9.81)
     .withCosineGain(2.5);
 
 double u = ff.calculate(Math.PI / 4.0, 1.5, 0.2);
