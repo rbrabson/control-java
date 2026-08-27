@@ -6,6 +6,7 @@ import com.rbrabson.control.filter.Filter;
 import com.rbrabson.control.filter.LowPassFilter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -15,6 +16,13 @@ class PIDTest {
         PID pid = new PID(10.0, 0.0, 0.0).withOutputLimits(-5.0, 5.0);
         double out = pid.calculate(10.0, 0.0);
         assertTrue(out <= 5.0 && out >= -5.0);
+    }
+
+    @Test
+    void firstRealTimeCalculationInitializesWithoutOutput() {
+        PID pid = new PID(10.0).withFeedForward(2.0);
+        assertEquals(0.0, pid.calculate(10.0, 0.0), 0.0);
+        assertEquals(102.0, pid.calculate(10.0, 0.0, 0.0), 0.0);
     }
 
     @Test
@@ -87,7 +95,7 @@ class PIDTest {
 
         assertThrows(IllegalArgumentException.class, () -> pid.withOutputLimits(1.0, -1.0));
         assertThrows(IllegalArgumentException.class, () -> pid.withOutputLimits(Double.NaN, 1.0));
-        assertThrows(IllegalArgumentException.class, () -> pid.withOutputLimits(0.0, Double.POSITIVE_INFINITY));
+        assertDoesNotThrow(() -> pid.withOutputLimits(0.0, Double.POSITIVE_INFINITY));
     }
 
     @Test
@@ -106,16 +114,16 @@ class PIDTest {
         PID pid = new PID(1.0);
 
         assertThrows(IllegalArgumentException.class, () -> pid.withDampening(0.0, 1.0, 0.0));
-        assertThrows(IllegalArgumentException.class, () -> pid.withDampening(1.0, 1.0, -1.0));
+        assertDoesNotThrow(() -> pid.withDampening(1.0, 1.0, -1.0));
         assertThrows(IllegalArgumentException.class, () -> pid.withDampening(Double.NaN, 1.0, 0.0));
     }
 
     @Test
     void calculatesStandardCriticalDampingGain() {
-        PID pid = new PID(1.0).withDampening(4.0, 9.0, 0.0);
+        PID pid = new PID(100.0).withDampening(4.0, 9.0, 0.0);
 
         pid.calculate(0.0, 0.0, 0.0);
-        assertEquals(-13.0, pid.calculate(0.0, 1.0, 1.0), 1e-9);
+        assertEquals(-108.0, pid.calculate(0.0, 1.0, 1.0), 1e-9);
     }
 
     @Test

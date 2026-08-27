@@ -21,4 +21,12 @@ class LowPassFilterTest {
         LowPassFilter lpf = new LowPassFilter(0.5);
         assertThrows(IllegalArgumentException.class, () -> lpf.setAlpha(Double.NaN));
     }
+
+    @Test
+    void ignoresNonFiniteMeasurements() {
+        LowPassFilter lpf = new LowPassFilter(0.8);
+        lpf.estimate(10.0);
+        assertEquals(0.0, lpf.estimate(Double.NaN), 1e-9);
+        assertEquals(10.0, lpf.getLastEstimate(), 1e-9);
+    }
 }

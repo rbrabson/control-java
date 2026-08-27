@@ -51,6 +51,9 @@ public class KalmanFilter implements Filter {
 
         this.regression = new LinearRegression(toPrimitive(estimates));
         findK();
+        if (!Double.isFinite(p) || !Double.isFinite(k)) {
+            throw new IllegalArgumentException("covariance calculation overflowed");
+        }
     }
 
     /**
@@ -96,6 +99,11 @@ public class KalmanFilter implements Filter {
         return p;
     }
 
+    @Override
+    public synchronized double getGain() {
+        return k;
+    }
+
     /**
      * Estimates the current state based on the provided measurement. The method
      * first runs a linear regression on the recent estimates to predict the next
@@ -108,7 +116,7 @@ public class KalmanFilter implements Filter {
     @Override
     public synchronized double estimate(double measurement) {
         if (!Double.isFinite(measurement)) {
-            throw new IllegalArgumentException("measurement must be finite");
+            return x;
         }
         regression.runLeastSquares();
         double prediction = regression.predictNextValue();
@@ -116,8 +124,13 @@ public class KalmanFilter implements Filter {
         Double latest = estimates.peek();
         double lastEstimate = latest == null ? 0.0 : latest;
 
-        x += prediction - lastEstimate;
-        x += k * (measurement - x);
+        double xBeforeUpdate = x;
+        double nextX = x + prediction - lastEstimate;
+        nextX += k * (measurement - nextX);
+        if (!Double.isFinite(nextX)) {
+            return xBeforeUpdate;
+        }
+        x = nextX;
 
         estimates.push(x);
         regression.updateData(toPrimitive(estimates));

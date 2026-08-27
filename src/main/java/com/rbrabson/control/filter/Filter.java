@@ -24,4 +24,9 @@ public interface Filter {
      * significant change in the system being measured.
      */
     void reset();
+
+    /** Returns the filter gain when one is defined. */
+    default double getGain() {
+        return Double.NaN;
+    }
 }

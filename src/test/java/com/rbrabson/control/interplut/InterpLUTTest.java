@@ -20,7 +20,8 @@ class InterpLUTTest {
         InterpLUT lut = new InterpLUT()
                 .withPoint(2.0, 2.0)
                 .withPoint(0.0, 0.0)
-                .withPoint(1.0, 1.0);
+                .withPoint(1.0, 1.0)
+                .build();
 
         assertEquals(0.5, lut.get(0.5), 1e-9);
     }
@@ -28,9 +29,10 @@ class InterpLUTTest {
     @Test
     void addingPointAfterBuildRebuildsSlopes() {
         InterpLUT lut = new InterpLUT().withPoint(0.0, 0.0).withPoint(1.0, 1.0).build();
-        InterpLUT extended = lut.withPoint(2.0, 4.0);
+        InterpLUT extended = lut.withPoint(2.0, 4.0).build();
 
         assertEquals(2.375, extended.get(1.5), 1e-9);
+        assertThrows(IllegalArgumentException.class, () -> extended.get(Double.NaN));
     }
 
     @Test
@@ -45,5 +47,15 @@ class InterpLUTTest {
         InterpLUT lut = new InterpLUT().withPoint(0.0, 0.0).withPoint(1.0, 1.0);
 
         assertDoesNotThrow(() -> lut.toString());
+    }
+
+    @Test
+    void mutableApiRequiresExplicitBuild() {
+        InterpLUT lut = new InterpLUT();
+        lut.add(0.0, 0.0);
+        lut.add(1.0, 1.0);
+        assertThrows(IllegalStateException.class, () -> lut.get(0.5));
+        lut.createLUT();
+        assertEquals(0.5, lut.get(0.5), 1e-9);
     }
 }

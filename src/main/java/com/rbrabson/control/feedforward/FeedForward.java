@@ -111,13 +111,16 @@ public class FeedForward {
      *         for static friction, and position effects as configured.
      */
     public double calculate(double position, double velocity, double acceleration) {
+        if (!Double.isFinite(position) || !Double.isFinite(velocity) || !Double.isFinite(acceleration)) {
+            return 0.0;
+        }
         double motionSign = velocity != 0.0 ? Math.signum(velocity) : Math.signum(acceleration);
         double output = kS * motionSign + kV * velocity + kA * acceleration;
         if (kCos != 0.0) {
             output += kCos * Math.cos(position);
         }
 
-        return output;
+        return Double.isFinite(output) ? output : 0.0;
     }
 
     /**

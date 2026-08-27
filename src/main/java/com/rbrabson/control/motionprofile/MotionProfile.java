@@ -4,8 +4,8 @@ package com.rbrabson.control.motionprofile;
  * A motion profile that generates a trajectory from an initial state to a goal
  * state while respecting specified constraints on maximum velocity and
  * acceleration. The profile consists of three phases: acceleration, cruising at
- * constant velocity, and deceleration, and can pass through a velocity reversal
- * when required by the endpoint velocities. The profile can be queried at any
+ * constant velocity, and deceleration. Endpoint velocities must be in the
+ * direction of travel. The profile can be queried at any
  * time to get the current state (position, velocity, acceleration) of the
  * trajectory. The acceleration fields supplied in the endpoint states are
  * metadata; the profile uses its configured maximum acceleration.
@@ -61,9 +61,9 @@ public class MotionProfile {
 
         // Handle the case where there is no displacement
         if (Math.abs(displacement) < 1e-10) {
-            if (Math.abs(goal.velocity - initial.velocity) >= 1e-10) {
+            if (Math.abs(initial.velocity) >= 1e-10 || Math.abs(goal.velocity) >= 1e-10) {
                 throw new IllegalArgumentException(
-                        "a zero-displacement profile cannot change velocity");
+                        "endpoint velocities must be zero when positions are equal");
             }
             totalTime = Math.abs(goal.velocity - initial.velocity) / constraints.maxAcceleration;
             accelerationTime = totalTime;
@@ -74,6 +74,9 @@ public class MotionProfile {
         }
 
         double direction = displacement < 0 ? -1.0 : 1.0;
+        if (direction * initial.velocity < 0 || direction * goal.velocity < 0) {
+            throw new IllegalArgumentException("endpoint velocities must be in the direction of motion");
+        }
         double maxVel = constraints.maxVelocity * direction;
 
         double vStart = initial.velocity;
@@ -133,14 +136,14 @@ public class MotionProfile {
      *         time t.
      */
     public State calculate(double t) {
-        if (!Double.isFinite(t)) {
-            throw new IllegalArgumentException("time must be finite");
+        if (Double.isNaN(t)) {
+            return new State(initial.position, initial.velocity, initial.acceleration, 0.0);
         }
         if (t <= 0) {
-            return new State(initial.position, initial.velocity, initial.acceleration, t);
+            return new State(initial.position, initial.velocity, initial.acceleration, 0.0);
         }
         if (t >= totalTime) {
-            return new State(goal.position, goal.velocity, goal.acceleration, t);
+            return new State(goal.position, goal.velocity, goal.acceleration, totalTime);
         }
 
         double direction = goal.position < initial.position ? -1.0 : 1.0;
@@ -181,9 +184,6 @@ public class MotionProfile {
      * @return True if the motion profile is finished at time t, false otherwise.
      */
     public boolean isFinished(double t) {
-        if (!Double.isFinite(t)) {
-            throw new IllegalArgumentException("time must be finite");
-        }
         return t >= totalTime;
     }
 
@@ -207,8 +207,8 @@ public class MotionProfile {
      * @return The time left until the profile reaches the target position.
      */
     public double timeLeftUntil(double targetPosition) {
-        if (!Double.isFinite(targetPosition)) {
-            throw new IllegalArgumentException("target position must be finite");
+        if (Double.isNaN(targetPosition)) {
+            return 0.0;
         }
         double direction = goal.position < initial.position ? -1.0 : 1.0;
 

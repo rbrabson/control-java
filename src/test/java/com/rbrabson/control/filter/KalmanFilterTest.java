@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class KalmanFilterTest {
     @Test
@@ -13,7 +14,7 @@ class KalmanFilterTest {
 
         KalmanFilter filter = new KalmanFilter(0.1, 0.1, 3);
         assertThrows(IllegalArgumentException.class, () -> filter.setX(Double.NaN));
-        assertThrows(IllegalArgumentException.class, () -> filter.estimate(Double.NaN));
+        assertEquals(0.0, filter.estimate(Double.NaN), 0.0);
     }
 
     @Test

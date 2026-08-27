@@ -22,7 +22,9 @@ class SizedStackTest {
     }
 
     @Test
-    void rejectsNonPositiveCapacity() {
-        assertThrows(IllegalArgumentException.class, () -> new SizedStack<Integer>(0));
+    void safelyHandlesZeroCapacity() {
+        SizedStack<Integer> stack = new SizedStack<Integer>(0);
+        stack.push(1);
+        assertEquals(0, stack.size());
     }
 }

@@ -14,8 +14,8 @@ import com.rbrabson.control.filter.Filter;
  * controller.
  */
 public class PID {
-    private final double kp;
-    private final double ki;
+    private double kp;
+    private double ki;
     private double kd;
 
     private double feedForward;
@@ -155,13 +155,13 @@ public class PID {
      *
      * @param min The minimum output value for the PID controller.
      * @param max The maximum output value for the PID controller.
-     * @throws IllegalArgumentException if the limits are not finite or min is
-     *                                  greater than max.
+     * @throws IllegalArgumentException if a limit is NaN or min is greater than
+     *                                  max. Infinite limits are allowed.
      * @return This PID controller.
      */
     public synchronized PID withOutputLimits(double min, double max) {
-        if (!Double.isFinite(min) || !Double.isFinite(max) || min > max) {
-            throw new IllegalArgumentException("output limits must be finite and min <= max");
+        if (Double.isNaN(min) || Double.isNaN(max) || min > max) {
+            throw new IllegalArgumentException("output limits must not be NaN and min <= max");
         }
         this.outputMin = min;
         this.outputMax = max;
@@ -180,17 +180,20 @@ public class PID {
      */
     public synchronized PID withDampening(double ka, double kv, double po) {
         if (!Double.isFinite(ka) || !Double.isFinite(kv) || !Double.isFinite(po)
-                || ka <= 0 || kv <= 0 || po < 0 || po >= 100) {
-            throw new IllegalArgumentException("dampening parameters must be finite and positive; overshoot must be in [0, 100)");
+                || ka <= 0 || kv <= 0) {
+            throw new IllegalArgumentException("dampening parameters must be finite and positive");
         }
-        double zeta;
+        if (kp < kv * kv / 4.0 * ka) {
+            return this;
+        }
         if (po == 0.0) {
-            zeta = 1.0;
+            this.kd = 2 * Math.sqrt(ka * kv) - ka;
         } else {
-            double poLog = Math.log(po / 100.0);
-            zeta = -poLog / Math.sqrt(Math.PI * Math.PI + poLog * poLog);
+            double normalized = Math.max(po / 100.0, 0.01);
+            double poLog = Math.log(normalized);
+            double zeta = -poLog / Math.sqrt(Math.PI * Math.PI + poLog * poLog);
+            this.kd = 2 * zeta * Math.sqrt(ka * kv) - kv;
         }
-        this.kd = 2 * zeta * Math.sqrt(ka * kv);
         return this;
     }
 
@@ -214,6 +217,13 @@ public class PID {
 
         if (!initialized) {
             prevTimeNanos = now;
+            if (!Double.isFinite(reference) || !Double.isFinite(state)) {
+                return 0.0;
+            }
+            initialized = true;
+            lastReference = reference;
+            lastError = reference - state;
+            return 0.0;
         }
 
         double dt = (now - prevTimeNanos) / 1000000000.0;
@@ -269,14 +279,15 @@ public class PID {
         double integralTerm = calculateIntegral(error, dt, rawDerivative);
 
         double output = proportional + integralTerm + derivative + feedForward;
+        if (!Double.isFinite(output)) {
+            integral = 0.0;
+            return 0.0;
+        }
         double clampedOutput = clamp(output, outputMin, outputMax);
 
         // Anti-windup: Adjust integral if output is clamped
         if (output != clampedOutput && ki != 0) {
             integral = (clampedOutput - proportional - derivative - feedForward) / ki;
-            if (!Double.isNaN(integralSumMax)) {
-                integral = clamp(integral, -integralSumMax, integralSumMax);
-            }
         }
 
         lastError = error;
@@ -378,6 +389,52 @@ public class PID {
         lastError = 0;
         if (filter != null) {
             filter.reset();
+        }
+        return this;
+    }
+
+    public synchronized PID setGains(double kp, double ki, double kd) {
+        if (Double.isFinite(kp) && Double.isFinite(ki) && Double.isFinite(kd)) {
+            this.kp = kp;
+            this.ki = ki;
+            this.kd = kd;
+        }
+        return this;
+    }
+
+    public synchronized double[] getGains() { return new double[] { kp, ki, kd }; }
+    public synchronized double getIntegral() { return integral; }
+    public synchronized double getFeedForward() { return feedForward; }
+    public synchronized boolean getIntegralResetOnZeroCross() { return integralResetOnZeroCross; }
+    public synchronized double getStabilityThreshold() { return stabilityThreshold; }
+    public synchronized double getIntegralSumMax() { return integralSumMax; }
+    public synchronized Filter getFilter() { return filter; }
+    public synchronized double[] getOutputLimits() { return new double[] { outputMin, outputMax }; }
+
+    public synchronized PID setFeedForward(double value) {
+        if (Double.isFinite(value)) feedForward = value;
+        return this;
+    }
+    public synchronized PID setIntegralResetOnZeroCross(boolean enabled) {
+        integralResetOnZeroCross = enabled;
+        return this;
+    }
+    public synchronized PID setStabilityThreshold(double value) {
+        if (Double.isFinite(value)) stabilityThreshold = Math.abs(value);
+        return this;
+    }
+    public synchronized PID setIntegralSumMax(double value) {
+        if (Double.isFinite(value)) integralSumMax = Math.abs(value);
+        return this;
+    }
+    public synchronized PID setFilter(Filter value) {
+        filter = value;
+        return this;
+    }
+    public synchronized PID setOutputLimits(double min, double max) {
+        if (!Double.isNaN(min) && !Double.isNaN(max) && min <= max) {
+            outputMin = min;
+            outputMax = max;
         }
         return this;
     }

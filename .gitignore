@@ -40,3 +40,6 @@ Thumbs.db
 
 # Maven Toolhain files
 /.mvn
+
+# Editors
+/.vscode/

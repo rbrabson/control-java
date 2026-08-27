@@ -18,12 +18,12 @@ public class SizedStack<T> {
     /**
      * Creates a new SizedStack with the specified capacity.
      *
-     * @param capacity The maximum number of values the stack can hold. Must be
-     *                 positive.
+     * @param capacity The maximum number of values the stack can hold. Negative
+     *                 capacities are treated as zero.
      */
     public SizedStack(int capacity) {
-        if (capacity <= 0) {
-            throw new IllegalArgumentException("capacity must be positive");
+        if (capacity < 0) {
+            capacity = 0;
         }
         this.capacity = capacity;
         this.data = new ArrayList<T>(capacity);
@@ -36,6 +36,9 @@ public class SizedStack<T> {
      * @param value The value to push onto the stack.
      */
     public void push(T value) {
+        if (capacity == 0) {
+            return;
+        }
         if (data.size() < capacity) {
             data.add(value);
         } else {

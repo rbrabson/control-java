@@ -55,16 +55,26 @@ public class LinearRegression {
             sumY += y;
             sumXY += x * y;
             sumXX += x * x;
+            if (!Double.isFinite(sumX) || !Double.isFinite(sumY)
+                    || !Double.isFinite(sumXY) || !Double.isFinite(sumXX)) {
+                throw new IllegalArgumentException("regression calculation overflowed");
+            }
         }
 
         double nf = n;
         double denominator = nf * sumXX - sumX * sumX;
+        if (!Double.isFinite(denominator)) {
+            throw new IllegalArgumentException("regression calculation overflowed");
+        }
         if (Math.abs(denominator) < 1e-10) {
             slope = 0;
             intercept = n > 0 ? sumY / nf : 0;
         } else {
             slope = (nf * sumXY - sumX * sumY) / denominator;
             intercept = (sumY - slope * sumX) / nf;
+            if (!Double.isFinite(slope) || !Double.isFinite(intercept)) {
+                throw new IllegalArgumentException("regression calculation overflowed");
+            }
         }
 
         hasRun = true;

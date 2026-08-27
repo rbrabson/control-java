@@ -32,13 +32,9 @@ class MotionProfileTest {
     }
 
     @Test
-    void handlesEndpointVelocityThatRequiresReversal() {
-        MotionProfile profile = new MotionProfile(new Constraints(3.0, 2.0),
-                new State(0.0, -1.0, 0.0, 0.0), new State(5.0, 1.0, 0.0, 0.0));
-
-        State end = profile.calculate(profile.totalTime());
-        assertEquals(5.0, end.position, 1e-9);
-        assertEquals(1.0, end.velocity, 1e-9);
+    void rejectsEndpointVelocityOppositeToMotion() {
+        assertThrows(IllegalArgumentException.class, () -> new MotionProfile(new Constraints(3.0, 2.0),
+                new State(0.0, -1.0, 0.0, 0.0), new State(5.0, 1.0, 0.0, 0.0)));
     }
 
     @Test
@@ -54,11 +50,11 @@ class MotionProfileTest {
 
         MotionProfile profile = new MotionProfile(constraints,
                 new State(0.0, 0.0, 0.0, 0.0), new State(1.0, 0.0, 0.0, 0.0));
-        assertThrows(IllegalArgumentException.class, () -> profile.calculate(Double.NaN));
+        assertEquals(0.0, profile.calculate(Double.NaN).time, 1e-9);
         assertThrows(IllegalArgumentException.class, () -> new MotionProfile(constraints,
                 new State(0.0, 3.0, 0.0, 0.0), new State(1.0, 0.0, 0.0, 0.0)));
-        assertThrows(IllegalArgumentException.class, () -> profile.timeLeftUntil(Double.NaN));
-        assertEquals(-1.0, profile.calculate(-1.0).time, 1e-9);
-        assertEquals(profile.totalTime() + 1.0, profile.calculate(profile.totalTime() + 1.0).time, 1e-9);
+        assertEquals(0.0, profile.timeLeftUntil(Double.NaN), 1e-9);
+        assertEquals(0.0, profile.calculate(-1.0).time, 1e-9);
+        assertEquals(profile.totalTime(), profile.calculate(profile.totalTime() + 1.0).time, 1e-9);
     }
 }

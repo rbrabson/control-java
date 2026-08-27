@@ -44,8 +44,16 @@ public class FullStateFeedback {
         if (setpoint == null || measurement == null) {
             throw new IllegalArgumentException("vectors must be non-null");
         }
+        for (double value : setpoint) {
+            if (!Double.isFinite(value)) throw new IllegalArgumentException("vectors must contain finite values");
+        }
+        for (double value : measurement) {
+            if (!Double.isFinite(value)) throw new IllegalArgumentException("vectors must contain finite values");
+        }
         double[] errorVec = minus(setpoint, measurement);
-        return product(errorVec, gain);
+        double output = product(errorVec, gain);
+        if (!Double.isFinite(output)) throw new IllegalArgumentException("vectors must contain finite values");
+        return output;
     }
 
     /**

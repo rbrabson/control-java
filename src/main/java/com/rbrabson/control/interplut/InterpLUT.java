@@ -50,14 +50,21 @@ public class InterpLUT {
         copy.x.add(xVal);
         copy.y.add(yVal);
         copy.m.clear();
-        // Note: slopes (m) will be recalculated on first use via lazy initialization
+        // Slopes are recalculated when build() is called on the returned LUT.
         return copy;
+    }
+
+    /** Adds a control point in the mutable Go-compatible API style. */
+    public void add(double xVal, double yVal) {
+        x.add(xVal);
+        y.add(yVal);
+        m.clear();
     }
 
     /**
      * Builds the interpolation lookup table from the added control points. This
      * method must be called before using get() to ensure the slopes are properly
-     * calculated. This is called automatically on first use.
+     * calculated.
      * 
      * @return This InterpLUT instance for method chaining.
      */
@@ -72,7 +79,7 @@ public class InterpLUT {
      * prepares the LUT for use. After calling this method, the get() method can be
      * used to retrieve interpolated values based on the input.
      */
-    private void createLUT() {
+    public void createLUT() {
         if (x.size() != y.size() || x.size() < 2) {
             throw new IllegalStateException(
                     "there must be at least two control points and the arrays must be of equal length");
@@ -80,6 +87,9 @@ public class InterpLUT {
 
         List<Point> points = new ArrayList<Point>(x.size());
         for (int i = 0; i < x.size(); i++) {
+            if (!Double.isFinite(x.get(i)) || !Double.isFinite(y.get(i))) {
+                throw new IllegalArgumentException("control point values must be finite");
+            }
             points.add(new Point(x.get(i), y.get(i)));
         }
         points.sort(new Comparator<Point>() {
@@ -144,8 +154,8 @@ public class InterpLUT {
 
     /**
      * Retrieves the interpolated output value corresponding to the given input
-     * using cubic Hermite interpolation. If the LUT has not been built yet, it will
-     * be built automatically. The input must be within the bounds of the control
+     * using cubic Hermite interpolation. The LUT must have been built after the
+     * control points were added. The input must be within the bounds of the control
      * points added to the LUT.
      *
      * @param input The input value for which to retrieve the interpolated output.
@@ -157,18 +167,13 @@ public class InterpLUT {
      *         returned.
      */
     public double get(double input) {
-        // Auto-build if not yet built
-        if (m.isEmpty() && !x.isEmpty()) {
-            createLUT();
-        }
-
         int n = x.size();
-        if (n == 0) {
-            throw new IllegalStateException("build() must be called before get()");
+        if (n == 0 || m.size() != n) {
+            throw new IllegalStateException("build() must be called after adding all control points");
         }
 
         if (Double.isNaN(input)) {
-            return input;
+            throw new IllegalArgumentException("lookup input must be finite");
         }
 
         if (input < x.get(0) || input > x.get(n - 1)) {

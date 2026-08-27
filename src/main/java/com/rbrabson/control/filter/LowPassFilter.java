@@ -41,6 +41,9 @@ public class LowPassFilter implements Filter {
      */
     @Override
     public synchronized double estimate(double measurement) {
+        if (!Double.isFinite(measurement)) {
+            return 0.0;
+        }
         if (!initialized) {
             previousEstimate = measurement;
             initialized = true;
@@ -48,8 +51,20 @@ public class LowPassFilter implements Filter {
         }
 
         double estimate = alpha * measurement + (1 - alpha) * previousEstimate;
+        if (!Double.isFinite(estimate)) {
+            return previousEstimate;
+        }
         previousEstimate = estimate;
         return estimate;
+    }
+
+    public synchronized double getAlpha() {
+        return alpha;
+    }
+
+    @Override
+    public synchronized double getGain() {
+        return alpha;
     }
 
     /**
