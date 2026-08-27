@@ -4,9 +4,11 @@ package com.rbrabson.control.motionprofile;
  * A motion profile that generates a trajectory from an initial state to a goal
  * state while respecting specified constraints on maximum velocity and
  * acceleration. The profile consists of three phases: acceleration, cruising at
- * constant velocity, and deceleration. The profile can be queried at any time
- * to get the current state (position, velocity, acceleration) of the
- * trajectory.
+ * constant velocity, and deceleration, and can pass through a velocity reversal
+ * when required by the endpoint velocities. The profile can be queried at any
+ * time to get the current state (position, velocity, acceleration) of the
+ * trajectory. The acceleration fields supplied in the endpoint states are
+ * metadata; the profile uses its configured maximum acceleration.
  */
 public class MotionProfile {
     private final Constraints constraints;
@@ -30,10 +32,21 @@ public class MotionProfile {
      * @param goal        The goal state of the trajectory (position, velocity).
      */
     public MotionProfile(Constraints constraints, State initial, State goal) {
+        if (constraints == null || initial == null || goal == null) {
+            throw new IllegalArgumentException("constraints and states must be non-null");
+        }
         this.constraints = constraints;
         this.initial = initial;
         this.goal = goal;
+        validateState(initial);
+        validateState(goal);
         calculateProfile();
+    }
+
+    private static void validateState(State state) {
+        if (!Double.isFinite(state.position) || !Double.isFinite(state.velocity)) {
+            throw new IllegalArgumentException("state position and velocity must be finite");
+        }
     }
 
     /**
@@ -48,6 +61,10 @@ public class MotionProfile {
 
         // Handle the case where there is no displacement
         if (Math.abs(displacement) < 1e-10) {
+            if (Math.abs(goal.velocity - initial.velocity) >= 1e-10) {
+                throw new IllegalArgumentException(
+                        "a zero-displacement profile cannot change velocity");
+            }
             totalTime = Math.abs(goal.velocity - initial.velocity) / constraints.maxAcceleration;
             accelerationTime = totalTime;
             cruiseTime = 0;
@@ -61,6 +78,11 @@ public class MotionProfile {
 
         double vStart = initial.velocity;
         double vEnd = goal.velocity;
+        if (Math.abs(vStart) > constraints.maxVelocity
+                || Math.abs(vEnd) > constraints.maxVelocity) {
+            throw new IllegalArgumentException(
+                    "initial and goal velocities must respect max velocity");
+        }
 
         double accelDist = (maxVel * maxVel - vStart * vStart) / (2 * constraints.maxAcceleration * direction);
         double decelDist = (vEnd * vEnd - maxVel * maxVel) / (-2 * constraints.maxAcceleration * direction);
@@ -78,9 +100,7 @@ public class MotionProfile {
             double discriminant = vStart * vStart + vEnd * vEnd
                     + 2 * constraints.maxAcceleration * displacement * direction;
             if (discriminant < 0) {
-                cruiseVelocity = vStart;
-                totalTime = 0;
-                return;
+                throw new IllegalArgumentException("initial and goal states are unreachable");
             }
 
             // Calculate peak velocity
@@ -95,6 +115,10 @@ public class MotionProfile {
         }
 
         totalTime = accelerationTime + cruiseTime + decelerationTime;
+        if (accelerationTime < -1e-10 || cruiseTime < -1e-10 || decelerationTime < -1e-10
+                || !Double.isFinite(totalTime)) {
+            throw new IllegalArgumentException("initial and goal states are unsupported or unreachable");
+        }
     }
 
     /**
@@ -109,11 +133,14 @@ public class MotionProfile {
      *         time t.
      */
     public State calculate(double t) {
+        if (!Double.isFinite(t)) {
+            throw new IllegalArgumentException("time must be finite");
+        }
         if (t <= 0) {
-            return initial;
+            return new State(initial.position, initial.velocity, initial.acceleration, t);
         }
         if (t >= totalTime) {
-            return goal;
+            return new State(goal.position, goal.velocity, goal.acceleration, t);
         }
 
         double direction = goal.position < initial.position ? -1.0 : 1.0;
@@ -154,6 +181,9 @@ public class MotionProfile {
      * @return True if the motion profile is finished at time t, false otherwise.
      */
     public boolean isFinished(double t) {
+        if (!Double.isFinite(t)) {
+            throw new IllegalArgumentException("time must be finite");
+        }
         return t >= totalTime;
     }
 
@@ -177,6 +207,9 @@ public class MotionProfile {
      * @return The time left until the profile reaches the target position.
      */
     public double timeLeftUntil(double targetPosition) {
+        if (!Double.isFinite(targetPosition)) {
+            throw new IllegalArgumentException("target position must be finite");
+        }
         double direction = goal.position < initial.position ? -1.0 : 1.0;
 
         double targetDistance = targetPosition - initial.position;
@@ -189,28 +222,26 @@ public class MotionProfile {
             return totalTime;
         }
 
-        if (direction * targetDistance <= direction * accelerationDistance) {
-            double a = 0.5 * constraints.maxAcceleration * direction;
-            double b = initial.velocity;
-            double c = -targetDistance;
-            double discriminant = b * b - 4 * a * c;
-            if (discriminant < 0) {
-                return 0;
-            }
-            return (-b + Math.sqrt(discriminant)) / (2 * a);
-        } else if (direction * targetDistance <= direction * (accelerationDistance + cruiseDistance)) {
-            double cDistance = targetDistance - accelerationDistance;
-            return accelerationTime + cDistance / cruiseVelocity;
+        double targetAlongPath = direction * targetDistance;
+        double accelerationAlongPath = direction * accelerationDistance;
+        double cruiseEndAlongPath = direction * (accelerationDistance + cruiseDistance);
+
+        if (targetAlongPath <= accelerationAlongPath) {
+            double initialVelocityAlongPath = direction * initial.velocity;
+            double discriminant = initialVelocityAlongPath * initialVelocityAlongPath
+                    + 2 * constraints.maxAcceleration * targetAlongPath;
+            return (-initialVelocityAlongPath + Math.sqrt(Math.max(0, discriminant)))
+                    / constraints.maxAcceleration;
+        } else if (targetAlongPath <= cruiseEndAlongPath) {
+            double cDistance = targetAlongPath - accelerationAlongPath;
+            return accelerationTime + cDistance / (direction * cruiseVelocity);
         } else {
-            double remainingDistance = totalDistance - targetDistance;
-            double a = 0.5 * constraints.maxAcceleration * direction;
-            double b = goal.velocity;
-            double c = remainingDistance;
-            double discriminant = b * b - 4 * a * c;
-            if (discriminant < 0) {
-                return totalTime;
-            }
-            double timeFromEnd = (-b + Math.sqrt(discriminant)) / (2 * a);
+            double remainingDistance = direction * (totalDistance - targetDistance);
+            double goalVelocityAlongPath = direction * goal.velocity;
+            double discriminant = goalVelocityAlongPath * goalVelocityAlongPath
+                    + 2 * constraints.maxAcceleration * remainingDistance;
+            double timeFromEnd = (-goalVelocityAlongPath + Math.sqrt(Math.max(0, discriminant)))
+                    / constraints.maxAcceleration;
             return totalTime - timeFromEnd;
         }
     }

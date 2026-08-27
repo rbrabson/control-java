@@ -22,7 +22,7 @@ public class LowPassFilter implements Filter {
      *              smoothing, slower response).
      */
     public LowPassFilter(double alpha) {
-        if (alpha <= 0 || alpha >= 1) {
+        if (!Double.isFinite(alpha) || alpha <= 0 || alpha >= 1) {
             throw new IllegalArgumentException("alpha must be between 0 and 1 (exclusive)");
         }
         this.alpha = alpha;
@@ -40,7 +40,7 @@ public class LowPassFilter implements Filter {
      *         measurement.
      */
     @Override
-    public double estimate(double measurement) {
+    public synchronized double estimate(double measurement) {
         if (!initialized) {
             previousEstimate = measurement;
             initialized = true;
@@ -61,8 +61,8 @@ public class LowPassFilter implements Filter {
      * @param alpha The new alpha value to set, which must be between 0 and 1
      *              (exclusive).
      */
-    public void setAlpha(double alpha) {
-        if (alpha <= 0 || alpha >= 1) {
+    public synchronized void setAlpha(double alpha) {
+        if (!Double.isFinite(alpha) || alpha <= 0 || alpha >= 1) {
             throw new IllegalArgumentException("alpha must be between 0 and 1 (exclusive)");
         }
         this.alpha = alpha;
@@ -74,7 +74,7 @@ public class LowPassFilter implements Filter {
      * treat the next measurement as the initial estimate.
      */
     @Override
-    public void reset() {
+    public synchronized void reset() {
         previousEstimate = 0.0;
         initialized = false;
     }

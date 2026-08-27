@@ -19,6 +19,14 @@ public class FullStateFeedback {
      *             measurement).
      */
     public FullStateFeedback(double[] gain) {
+        if (gain == null || gain.length == 0) {
+            throw new IllegalArgumentException("gain must be non-null and non-empty");
+        }
+        for (double value : gain) {
+            if (!Double.isFinite(value)) {
+                throw new IllegalArgumentException("gain values must be finite");
+            }
+        }
         this.gain = Arrays.copyOf(gain, gain.length);
     }
 
@@ -33,6 +41,9 @@ public class FullStateFeedback {
      * @return The control input calculated by the full state feedback controller.
      */
     public double calculate(double[] setpoint, double[] measurement) {
+        if (setpoint == null || measurement == null) {
+            throw new IllegalArgumentException("vectors must be non-null");
+        }
         double[] errorVec = minus(setpoint, measurement);
         return product(errorVec, gain);
     }

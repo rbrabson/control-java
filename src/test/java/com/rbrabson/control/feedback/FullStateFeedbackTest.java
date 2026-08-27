@@ -23,4 +23,14 @@ class FullStateFeedbackTest {
             }
         });
     }
+
+    @Test
+    void rejectsNullOrEmptyGainsAndVectors() {
+        assertThrows(IllegalArgumentException.class, () -> new FullStateFeedback(null));
+        assertThrows(IllegalArgumentException.class, () -> new FullStateFeedback(new double[0]));
+
+        final FullStateFeedback fsf = new FullStateFeedback(new double[] { 1.0 });
+        assertThrows(IllegalArgumentException.class, () -> fsf.calculate(null, new double[] { 0.0 }));
+        assertThrows(IllegalArgumentException.class, () -> fsf.calculate(new double[] { 0.0 }, null));
+    }
 }

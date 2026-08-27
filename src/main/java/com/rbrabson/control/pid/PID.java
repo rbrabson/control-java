@@ -10,7 +10,8 @@ import com.rbrabson.control.filter.Filter;
  * derivative term, maximum integral sum, output limits, and a filter for
  * smoothing the derivative term. The PID controller is designed to be flexible
  * and adaptable to different control scenarios, allowing for fine-tuning of its
- * behavior through the use of fluent methods that return copies.
+ * behavior through the use of fluent methods that configure and return this
+ * controller.
  */
 public class PID {
     private final double kp;
@@ -60,6 +61,9 @@ public class PID {
      * @param kd The derivative gain.
      */
     public PID(double kp, double ki, double kd) {
+        if (!Double.isFinite(kp) || !Double.isFinite(ki) || !Double.isFinite(kd)) {
+            throw new IllegalArgumentException("gains must be finite");
+        }
         this.kp = kp;
         this.ki = ki;
         this.kd = kd;
@@ -73,108 +77,120 @@ public class PID {
     }
 
     /**
-     * Creates a copy of this PID controller with a feedforward term.
+     * Configures this PID controller with a feedforward term.
      *
      * @param feedForward The feedforward term to be added to the output of the PID
      *                    controller.
-     * @return A new PID controller with the feedforward term set.
+     * @return This PID controller.
      */
-    public PID withFeedForward(double feedForward) {
+    public synchronized PID withFeedForward(double feedForward) {
+        if (!Double.isFinite(feedForward)) {
+            throw new IllegalArgumentException("feedforward must be finite");
+        }
         this.feedForward = feedForward;
         return this;
     }
 
     /**
-     * Creates a copy of this PID controller with integral reset on zero crossing
+     * Configures this PID controller with integral reset on zero crossing
      * enabled. When enabled, the integral term will be reset to zero whenever the
      * error crosses zero (i.e., when the system transitions from being above the
      * target to below the target, or vice versa).
      *
-     * @return A new PID controller with integral reset on zero crossing enabled.
+     * @return This PID controller.
      */
-    public PID withIntegralResetOnZeroCross() {
+    public synchronized PID withIntegralResetOnZeroCross() {
         this.integralResetOnZeroCross = true;
         return this;
     }
 
     /**
-     * Creates a copy of this PID controller with a stability threshold. The
+     * Configures this PID controller with a stability threshold. The
      * stability threshold is used to determine when the derivative term should be
      * calculated. If the absolute value of the raw derivative exceeds the stability
      * threshold, the integral term will not be updated.
      *
      * @param threshold The stability threshold value.
-     * @return A new PID controller with the stability threshold set.
+     * @return This PID controller.
      */
-    public PID withStabilityThreshold(double threshold) {
+    public synchronized PID withStabilityThreshold(double threshold) {
+        if (!Double.isFinite(threshold)) {
+            throw new IllegalArgumentException("stability threshold must be finite");
+        }
         this.stabilityThreshold = Math.abs(threshold);
         return this;
     }
 
     /**
-     * Creates a copy of this PID controller with a maximum integral sum. If the
+     * Configures this PID controller with a maximum integral sum. If the
      * integral sum exceeds this value, it will be clamped to the maximum.
      *
      * @param maxSum The maximum absolute value for the integral sum.
-     * @return A new PID controller with the integral sum max set.
+     * @return This PID controller.
      */
-    public PID withIntegralSumMax(double maxSum) {
+    public synchronized PID withIntegralSumMax(double maxSum) {
+        if (!Double.isFinite(maxSum)) {
+            throw new IllegalArgumentException("integral sum maximum must be finite");
+        }
         this.integralSumMax = Math.abs(maxSum);
         return this;
     }
 
     /**
-     * Creates a copy of this PID controller with a filter for the derivative term.
+     * Configures this PID controller with a filter for the derivative term.
      * The filter will be applied to the raw derivative value before it is
      * multiplied by the derivative gain (kd).
      *
      * @param filter The filter to be used for smoothing the derivative term.
-     * @return A new PID controller with the filter set.
+     * @return This PID controller.
      */
-    public PID withFilter(Filter filter) {
+    public synchronized PID withFilter(Filter filter) {
         this.filter = filter;
         return this;
     }
 
     /**
-     * Creates a copy of this PID controller with output limits. The output of the
+     * Configures this PID controller with output limits. The output of the
      * PID controller will be clamped to the specified minimum and maximum values.
      *
      * @param min The minimum output value for the PID controller.
      * @param max The maximum output value for the PID controller.
-     * @return A new PID controller with the output limits set.
+     * @throws IllegalArgumentException if the limits are not finite or min is
+     *                                  greater than max.
+     * @return This PID controller.
      */
-    public PID withOutputLimits(double min, double max) {
-        if (min <= max) {
-            this.outputMin = min;
-            this.outputMax = max;
+    public synchronized PID withOutputLimits(double min, double max) {
+        if (!Double.isFinite(min) || !Double.isFinite(max) || min > max) {
+            throw new IllegalArgumentException("output limits must be finite and min <= max");
         }
+        this.outputMin = min;
+        this.outputMax = max;
         return this;
     }
 
     /**
-     * Creates a copy of this PID controller with PID gains based on a damped
+     * Configures this PID controller with PID gains based on a damped
      * spring-mass-damper system model. The gains are calculated based on the
      * specified spring stiffness (ka), mass (kv), and percent overshoot (po).
      *
      * @param ka The spring stiffness, which represents the proportional gain (kp)
      * @param kv The mass, which represents the derivative gain (kd)
      * @param po The percent overshoot, used to calculate the damping ratio (zeta)
-     * @return A new PID controller with the derivative gain set based on dampening.
+     * @return This PID controller.
      */
-    public PID withDampening(double ka, double kv, double po) {
-        if (this.kp < kv * kv / 4 * ka) {
-            return this;
+    public synchronized PID withDampening(double ka, double kv, double po) {
+        if (!Double.isFinite(ka) || !Double.isFinite(kv) || !Double.isFinite(po)
+                || ka <= 0 || kv <= 0 || po < 0 || po >= 100) {
+            throw new IllegalArgumentException("dampening parameters must be finite and positive; overshoot must be in [0, 100)");
         }
-
-        if (po == 0) {
-            this.kd = 2 * Math.sqrt(ka * kv) - ka;
+        double zeta;
+        if (po == 0.0) {
+            zeta = 1.0;
         } else {
-            double boundedPo = Math.max(po / 100.0, 0.01);
-            double poLog = Math.log(boundedPo);
-            double zeta = -poLog / Math.sqrt(Math.PI * Math.PI + poLog * poLog);
-            this.kd = 2 * zeta * Math.sqrt(ka * kv) - kv;
+            double poLog = Math.log(po / 100.0);
+            zeta = -poLog / Math.sqrt(Math.PI * Math.PI + poLog * poLog);
         }
+        this.kd = 2 * zeta * Math.sqrt(ka * kv);
         return this;
     }
 
@@ -193,7 +209,7 @@ public class PID {
      *         the proportional, integral, and derivative terms, plus any
      *         feedforward, and clamped to the configured output limits.
      */
-    public double calculate(double reference, double state) {
+    public synchronized double calculate(double reference, double state) {
         long now = System.nanoTime();
 
         if (!initialized) {
@@ -225,7 +241,14 @@ public class PID {
      *         the proportional, integral, and derivative terms, plus any
      *         feedforward, and clamped to the configured output limits.
      */
-    public double calculate(double reference, double state, double dt) {
+    public synchronized double calculate(double reference, double state, double dt) {
+        if (!Double.isFinite(dt) || dt < 0) {
+            throw new IllegalArgumentException("dt must be finite and non-negative");
+        }
+        if (!Double.isFinite(reference) || !Double.isFinite(state)) {
+            throw new IllegalArgumentException("reference and state must be finite");
+        }
+
         double error = reference - state;
 
         if (!initialized) {
@@ -241,8 +264,9 @@ public class PID {
         }
 
         double proportional = calculateProportional(error);
-        double derivative = calculateDerivative(error, dt);
-        double integralTerm = calculateIntegral(error, dt);
+        double rawDerivative = calculateRawDerivative(error, dt);
+        double derivative = calculateDerivative(rawDerivative, dt);
+        double integralTerm = calculateIntegral(error, dt, rawDerivative);
 
         double output = proportional + integralTerm + derivative + feedForward;
         double clampedOutput = clamp(output, outputMin, outputMax);
@@ -250,6 +274,9 @@ public class PID {
         // Anti-windup: Adjust integral if output is clamped
         if (output != clampedOutput && ki != 0) {
             integral = (clampedOutput - proportional - derivative - feedForward) / ki;
+            if (!Double.isNaN(integralSumMax)) {
+                integral = clamp(integral, -integralSumMax, integralSumMax);
+            }
         }
 
         lastError = error;
@@ -280,12 +307,11 @@ public class PID {
      * @return The calculated integral term, which is the product of the integral
      *         gain (ki) and the accumulated integral value.
      */
-    private double calculateIntegral(double error, double dt) {
+    private double calculateIntegral(double error, double dt, double rawDerivative) {
         if (integralResetOnZeroCross && ((lastError > 0 && error < 0) || (lastError < 0 && error > 0))) {
             integral = 0;
         }
 
-        double rawDerivative = calculateRawDerivative(error, dt);
         if (Double.isNaN(stabilityThreshold) || Math.abs(rawDerivative) <= stabilityThreshold) {
             integral += error * dt;
 
@@ -307,9 +333,12 @@ public class PID {
      * @return The calculated derivative term, which is the product of the
      *         derivative gain (kd) and the estimated derivative of the error.
      */
-    private double calculateDerivative(double error, double dt) {
-        double rawDerivative = calculateRawDerivative(error, dt);
-        return kd * rawDerivative;
+    private double calculateDerivative(double rawDerivative, double dt) {
+        if (dt <= 0) {
+            return 0;
+        }
+        double estimate = filter != null ? filter.estimate(rawDerivative) : rawDerivative;
+        return kd * estimate;
     }
 
     /**
@@ -328,8 +357,7 @@ public class PID {
         }
 
         double errorChange = error - lastError;
-        double currentEstimate = filter != null ? filter.estimate(errorChange) : errorChange;
-        return currentEstimate / dt;
+        return errorChange / dt;
     }
 
     /**
@@ -344,7 +372,7 @@ public class PID {
      * @return The PID instance itself, allowing for method chaining when resetting
      *         and reconfiguring the controller.
      */
-    public PID reset() {
+    public synchronized PID reset() {
         integral = 0;
         initialized = false;
         lastError = 0;

@@ -16,6 +16,10 @@ public class Constraints {
      * @param maxAcceleration The maximum acceleration for the motion profile.
      */
     public Constraints(double maxVelocity, double maxAcceleration) {
+        if (!Double.isFinite(maxVelocity) || maxVelocity <= 0
+                || !Double.isFinite(maxAcceleration) || maxAcceleration <= 0) {
+            throw new IllegalArgumentException("constraints must be finite and positive");
+        }
         this.maxVelocity = maxVelocity;
         this.maxAcceleration = maxAcceleration;
     }

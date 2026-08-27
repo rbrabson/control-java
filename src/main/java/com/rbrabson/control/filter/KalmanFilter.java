@@ -32,7 +32,7 @@ public class KalmanFilter implements Filter {
         if (n <= 0) {
             throw new IllegalArgumentException("stack size must be positive");
         }
-        if (q < 0 || r < 0) {
+        if (!Double.isFinite(q) || !Double.isFinite(r) || q < 0 || r < 0) {
             throw new IllegalArgumentException("covariance values must be non-negative");
         }
 
@@ -60,7 +60,10 @@ public class KalmanFilter implements Filter {
      *
      * @param x the initial state estimate to set for the Kalman filter
      */
-    public void setX(double x) {
+    public synchronized void setX(double x) {
+        if (!Double.isFinite(x)) {
+            throw new IllegalArgumentException("state estimate must be finite");
+        }
         this.x = x;
     }
 
@@ -69,7 +72,7 @@ public class KalmanFilter implements Filter {
      *
      * @return the current state estimate of the Kalman filter
      */
-    public double getX() {
+    public synchronized double getX() {
         return x;
     }
 
@@ -79,7 +82,7 @@ public class KalmanFilter implements Filter {
      *
      * @return the current Kalman gain of the filter
      */
-    public double getK() {
+    public synchronized double getK() {
         return k;
     }
 
@@ -89,7 +92,7 @@ public class KalmanFilter implements Filter {
      *
      * @return the current error covariance of the filter
      */
-    public double getP() {
+    public synchronized double getP() {
         return p;
     }
 
@@ -103,7 +106,10 @@ public class KalmanFilter implements Filter {
      * @return The updated state estimate after processing the measurement.
      */
     @Override
-    public double estimate(double measurement) {
+    public synchronized double estimate(double measurement) {
+        if (!Double.isFinite(measurement)) {
+            throw new IllegalArgumentException("measurement must be finite");
+        }
         regression.runLeastSquares();
         double prediction = regression.predictNextValue();
 
@@ -146,7 +152,7 @@ public class KalmanFilter implements Filter {
      * values of the Kalman gain (k) and error covariance (p).
      */
     @Override
-    public void reset() {
+    public synchronized void reset() {
         double convergedP = p;
         double convergedK = k;
 

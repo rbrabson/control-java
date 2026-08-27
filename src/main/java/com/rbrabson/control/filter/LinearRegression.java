@@ -23,6 +23,7 @@ public class LinearRegression {
      *             of the array.
      */
     public LinearRegression(double[] data) {
+        validateData(data);
         this.data = Arrays.copyOf(data, data.length);
     }
 
@@ -37,7 +38,7 @@ public class LinearRegression {
         int n = data.length;
         if (n < 2) {
             slope = 0;
-            intercept = 0;
+            intercept = n == 0 ? 0 : data[0];
             hasRun = true;
             return;
         }
@@ -103,7 +104,19 @@ public class LinearRegression {
      *             of the array.
      */
     public void updateData(double[] data) {
+        validateData(data);
         this.data = Arrays.copyOf(data, data.length);
         this.hasRun = false;
+    }
+
+    private static void validateData(double[] data) {
+        if (data == null) {
+            throw new IllegalArgumentException("data must be non-null");
+        }
+        for (double value : data) {
+            if (!Double.isFinite(value)) {
+                throw new IllegalArgumentException("data values must be finite");
+            }
+        }
     }
 }

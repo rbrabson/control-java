@@ -4,8 +4,10 @@ package com.rbrabson.control.feedforward;
  * A feedforward controller for calculating the necessary motor output to
  * achieve a desired velocity and acceleration. The controller can be configured
  * with static, velocity, and acceleration gains, as cosine gains for more
- * complex systems. Configuration is done through fluent methods that return
- * copies to support method chaining.
+ * complex systems. Configuration is done through fluent methods that configure
+ * and return this controller for method chaining.
+ * The static term follows the direction of velocity, or acceleration when
+ * velocity is zero, and is zero when the system is stationary.
  */
 public class FeedForward {
     private final double kS;
@@ -46,6 +48,9 @@ public class FeedForward {
      *           a certain acceleration.
      */
     public FeedForward(double kS, double kV, double kA) {
+        if (!Double.isFinite(kS) || !Double.isFinite(kV) || !Double.isFinite(kA)) {
+            throw new IllegalArgumentException("gains must be finite");
+        }
         this.kS = kS;
         this.kV = kV;
         this.kA = kA;
@@ -54,16 +59,19 @@ public class FeedForward {
     }
 
     /**
-     * Creates a copy of this FeedForward controller with a cosine gain set. This
+     * Configures this FeedForward controller with a cosine gain. This
      * gain can be used to compensate for the effect of position on the system, such
      * as when controlling an arm or elevator that experiences varying loads at
      * different positions.
      *
      * @param kCos The cosine gain, representing the output required to compensate
      *             for position.
-     * @return A new FeedForward controller with the cosine gain set.
+     * @return This FeedForward controller.
      */
     public FeedForward withCosineGain(double kCos) {
+        if (!Double.isFinite(kCos)) {
+            throw new IllegalArgumentException("cosine gain must be finite");
+        }
         this.kCos = kCos;
         return this;
     }
@@ -103,7 +111,8 @@ public class FeedForward {
      *         for static friction, and position effects as configured.
      */
     public double calculate(double position, double velocity, double acceleration) {
-        double output = kS + kV * velocity + kA * acceleration;
+        double motionSign = velocity != 0.0 ? Math.signum(velocity) : Math.signum(acceleration);
+        double output = kS * motionSign + kV * velocity + kA * acceleration;
         if (kCos != 0.0) {
             output += kCos * Math.cos(position);
         }

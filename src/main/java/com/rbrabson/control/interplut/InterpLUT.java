@@ -43,9 +43,13 @@ public class InterpLUT {
      * @return A new InterpLUT with the control point added.
      */
     public InterpLUT withPoint(double xVal, double yVal) {
+        if (!Double.isFinite(xVal) || !Double.isFinite(yVal)) {
+            throw new IllegalArgumentException("control point values must be finite");
+        }
         InterpLUT copy = new InterpLUT(this);
         copy.x.add(xVal);
         copy.y.add(yVal);
+        copy.m.clear();
         // Note: slopes (m) will be recalculated on first use via lazy initialization
         return copy;
     }
@@ -81,7 +85,7 @@ public class InterpLUT {
         points.sort(new Comparator<Point>() {
             @Override
             public int compare(Point a, Point b) {
-                return Double.compare(a.x, b.y);
+                return Double.compare(a.x, b.x);
             }
         });
 
@@ -208,7 +212,8 @@ public class InterpLUT {
             if (i != 0) {
                 str.append(", ");
             }
-            str.append(String.format("(%s, %s: %s)", x.get(i), y.get(i), m.get(i)));
+            String slope = m.size() == x.size() ? String.valueOf(m.get(i)) : "unbuilt";
+            str.append(String.format("(%s, %s: %s)", x.get(i), y.get(i), slope));
         }
         str.append("]");
         return str.toString();
