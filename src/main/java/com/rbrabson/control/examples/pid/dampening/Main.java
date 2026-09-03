@@ -6,10 +6,10 @@ import com.rbrabson.control.pid.PID;
 public class Main {
     public static void main(String[] args) {
         // Compare three PID configurations to demonstrate dampening effects
-        PID basic = new PID(2.0, 0.5, 0.8).withOutputLimits(-50, 50);
-        PID filtered = new PID(2.0, 0.5, 0.8).withFilter(new LowPassFilter(0.6)).withOutputLimits(-50, 50);
-        PID damped = new PID(2.0, 0.5, 0.8).withFilter(new LowPassFilter(0.6)).withStabilityThreshold(3.0)
-                .withOutputLimits(-50, 50);
+        PID basic = new PID(8.0, 4.0, 4.5).withOutputLimits(-150, 150);
+        PID filtered = new PID(8.0, 4.0, 4.5).withFilter(new LowPassFilter(0.75)).withOutputLimits(-150, 150);
+        PID damped = new PID(8.0, 4.0, 4.5).withFilter(new LowPassFilter(0.75)).withStabilityThreshold(15.0)
+                .withOutputLimits(-150, 150);
 
         double target = 100.0;
         double x1 = 20.0, v1 = 0.0;
@@ -23,7 +23,7 @@ public class Main {
         System.out.printf("%-8s %-12s %-12s %-12s%n", "Time", "Basic", "Filtered", "Damped");
         System.out.println("-----------------------------------------------");
 
-        for (int i = 0; i <= 200; i++) {
+        for (int i = 0; i <= 400; i++) {
             double time = i * dt;
             double u1 = basic.calculate(target, x1, dt);
             double u2 = filtered.calculate(target, x2, dt);
@@ -37,7 +37,7 @@ public class Main {
             v3 += u3 * dt;
             x3 += v3 * dt;
 
-            if (i % 20 == 0) {
+            if (i % 40 == 0) {
                 System.out.printf("%.2f     %8.2f     %8.2f     %8.2f%n", time, x1, x2, x3);
             }
         }
