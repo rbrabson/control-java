@@ -18,7 +18,7 @@ public class Main {
 
         System.out.println("Temperature Control System");
         System.out.println("==========================");
-        System.out.println(String.format("Ambient: %.1f°C, Target: %.1f°C\n", ambient, setpoint));
+        System.out.printf("Ambient: %.1f°C, Target: %.1f°C\n%n", ambient, setpoint);
         System.out.printf("%-8s %-12s %-12s %-12s%n", "Time", "Temp(°C)", "Error(°C)", "Heater(%)");
         System.out.println("-----------------------------------------------");
 
@@ -26,7 +26,7 @@ public class Main {
             double time = i * dt;
             double heater = controller.calculate(setpoint, temp, dt);
 
-            // Thermal model: heating power vs heat loss to ambient
+            // Thermal model: heating power vs. heat loss to ambient
             double heatInput = heater * 3000.0; // Watts (heater power)
             double heatLoss = 50.0 * (temp - ambient); // Heat dissipation (W/°C)
             temp += (heatInput - heatLoss) * 0.001 * dt; // Temperature change
@@ -38,8 +38,8 @@ public class Main {
         }
 
         double finalError = Math.abs(setpoint - temp);
-        System.out.println(String.format("\nFinal temperature: %.2f°C (target: %.1f°C)", temp, setpoint));
-        System.out.println(String.format("Final error: %.2f°C (%.1f%%)", finalError, (finalError / setpoint) * 100));
+        System.out.printf("\nFinal temperature: %.2f°C (target: %.1f°C)%n", temp, setpoint);
+        System.out.printf("Final error: %.2f°C (%.1f%%)%n", finalError, (finalError / setpoint) * 100);
         System.out.println("\nFeatures:");
         System.out.println("- Feedforward compensates for ambient temperature");
         System.out.println("- Integral reset prevents windup during large errors");
