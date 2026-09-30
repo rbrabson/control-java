@@ -393,6 +393,19 @@ public class PID {
         return this;
     }
 
+    /**
+     * Sets the PID gains (kp, ki, kd) for the controller. This method allows for
+     * updating the proportional, integral, and derivative gains of the PID
+     * controller. The gains must be finite values; otherwise, they will not be
+     * updated. This method provides a convenient way to adjust the behavior of the
+     * PID controller during runtime.
+     *
+     * @param kp The new proportional gain to be set for the PID controller.
+     * @param ki The new integral gain to be set for the PID controller.
+     * @param kd The new derivative gain to be set for the PID controller.
+     * @return The PID instance itself, allowing for method chaining when updating
+     *         the gains.
+     */
     public synchronized PID setGains(double kp, double ki, double kd) {
         if (Double.isFinite(kp) && Double.isFinite(ki) && Double.isFinite(kd)) {
             this.kp = kp;
@@ -402,35 +415,181 @@ public class PID {
         return this;
     }
 
+    /**
+     * Returns the current PID gains (kp, ki, kd) as an array of doubles. The first element of the
+     * array is the proportional gain (kp), the second element is the integral gain (ki), and the
+     * third element is the derivative gain (kd). This method provides a convenient way to retrieve
+     * the current configuration of the PID controller's gains for inspection or logging purposes.
+     *
+     * @return An array of doubles containing the current PID gains: [kp, ki, kd].
+     */
     public synchronized double[] getGains() { return new double[] { kp, ki, kd }; }
+
+    /**
+     * Returns the current integral term of the PID controller. The integral term
+     * represents the accumulated error over time and is used to eliminate steady-state
+     * error in the control system. This method provides access to the internal state of
+     * the PID controller, allowing for inspection or logging of the integral value.
+     *
+     * @return The current integral term of the PID controller.
+     */
     public synchronized double getIntegral() { return integral; }
+
+    /**
+     * Returns the current feedforward term of the PID controller. The feedforward
+     * term is an additional component that can be added to the output of the PID
+     * controller to account for known system dynamics or external influences. This
+     * method provides access to the configured feedforward value, allowing for
+     * inspection or logging of the feedforward contribution to the control output.
+     *
+     * @return The current feedforward term of the PID controller.
+     */
     public synchronized double getFeedForward() { return feedForward; }
+
+    /**
+     * Returns whether the integral reset on zero crossing feature is enabled for
+     * the PID controller. When enabled, the integral term will be reset to zero
+     * whenever the error crosses zero (i.e., when the system transitions from being
+     * above the target to below the target, or vice versa). This method provides
+     * access to the configuration of this feature, allowing for inspection or
+     * logging of its status.
+     *
+     * @return True if integral reset on zero crossing is enabled; false otherwise.
+     */
     public synchronized boolean getIntegralResetOnZeroCross() { return integralResetOnZeroCross; }
+
+    /**
+     * Returns the current stability threshold for the PID controller. The stability
+     * threshold is used to determine when the derivative term should be calculated.
+     * If the absolute value of the raw derivative exceeds the stability threshold,
+     * the integral term will not be updated. This method provides access to the
+     * configured stability threshold, allowing for inspection or logging of its value.
+     *
+     * @return The current stability threshold of the PID controller.
+     */
     public synchronized double getStabilityThreshold() { return stabilityThreshold; }
+
+    /**
+     * Returns the current maximum integral sum for the PID controller. If the
+     * integral sum exceeds this value, it will be clamped to the maximum. This
+     * method provides access to the configured maximum integral sum, allowing for
+     * inspection or logging of its value.
+     *
+     * @return The current maximum integral sum of the PID controller.
+     */
     public synchronized double getIntegralSumMax() { return integralSumMax; }
+
+    /**
+     * Returns the current filter used for smoothing the derivative term of the
+     * PID controller. The filter is applied to the raw derivative value before it
+     * is multiplied by the derivative gain (kd). This method provides access to
+     * the configured filter, allowing for inspection or logging of its type and
+     * parameters.
+     *
+     * @return The current filter used for smoothing the derivative term of the PID
+     *         controller, or null if no filter is set.
+     */
     public synchronized Filter getFilter() { return filter; }
+
+    /**
+     * Returns the current output limits for the PID controller. The output of the
+     * PID controller will be clamped to the specified minimum and maximum values.
+     * This method provides access to the configured output limits, allowing for
+     * inspection or logging of their values.
+     *
+     * @return An array of doubles containing the current output limits: [min, max].
+     */
     public synchronized double[] getOutputLimits() { return new double[] { outputMin, outputMax }; }
 
+    /**
+     * Sets the feedforward term for the PID controller. The feedforward term is an
+     * additional component that can be added to the output of the PID controller to
+     * account for known system dynamics or external influences. This method allows
+     * for updating the feedforward value, which will be added to the calculated
+     * output of the PID controller.
+     *
+     * @param value The new feedforward term to be set for the PID controller.
+     * @return The PID instance itself, allowing for method chaining when updating
+     *         the feedforward term.
+     */
     public synchronized PID setFeedForward(double value) {
         if (Double.isFinite(value)) feedForward = value;
         return this;
     }
+
+    /**
+     * Sets whether the integral reset on zero crossing feature is enabled for the
+     * PID controller. When enabled, the integral term will be reset to zero
+     * whenever the error crosses zero (i.e., when the system transitions from being
+     * above the target to below the target, or vice versa). This method allows for
+     * updating the configuration of this feature.
+     *
+     * @param enabled True to enable integral reset on zero crossing; false to
+     *                disable it.
+     * @return The PID instance itself, allowing for method chaining when updating
+     *         the integral reset on zero crossing feature.
+     */
     public synchronized PID setIntegralResetOnZeroCross(boolean enabled) {
         integralResetOnZeroCross = enabled;
         return this;
     }
+
+    /**
+     * Sets the stability threshold for the PID controller. The stability threshold
+     * is used to determine when the derivative term should be calculated. If the
+     * absolute value of the raw derivative exceeds the stability threshold, the
+     * integral term will not be updated. This method allows for updating the
+     * stability threshold value.
+     *
+     * @param value The new stability threshold to be set for the PID controller.
+     * @return The PID instance itself, allowing for method chaining when updating
+     *         the stability threshold.
+     */
     public synchronized PID setStabilityThreshold(double value) {
         if (Double.isFinite(value)) stabilityThreshold = Math.abs(value);
         return this;
     }
+
+    /**
+     * Sets the maximum integral sum for the PID controller. If the integral sum
+     * exceeds this value, it will be clamped to the maximum. This method allows for
+     * updating the maximum integral sum value.
+     *
+     * @param value The new maximum integral sum to be set for the PID controller.
+     * @return The PID instance itself, allowing for method chaining when updating
+     *         the maximum integral sum.
+     */
     public synchronized PID setIntegralSumMax(double value) {
         if (Double.isFinite(value)) integralSumMax = Math.abs(value);
         return this;
     }
+
+    /**
+     * Sets the filter for smoothing the derivative term of the PID controller. The
+     * filter will be applied to the raw derivative value before it is multiplied by
+     * the derivative gain (kd). This method allows for updating the filter used for
+     * smoothing the derivative term.
+     *
+     * @param value The new filter to be set for smoothing the derivative term of
+     *              the PID controller.
+     * @return The PID instance itself, allowing for method chaining when updating
+     *         the filter.
+     */
     public synchronized PID setFilter(Filter value) {
         filter = value;
         return this;
     }
+
+    /**
+     * Sets the output limits for the PID controller. The output of the PID
+     * controller will be clamped to the specified minimum and maximum values. This
+     * method allows for updating the output limits.
+     *
+     * @param min The new minimum output value for the PID controller.
+     * @param max The new maximum output value for the PID controller.
+     * @return The PID instance itself, allowing for method chaining when updating
+     *         the output limits.
+     */
     public synchronized PID setOutputLimits(double min, double max) {
         if (!Double.isNaN(min) && !Double.isNaN(max) && min <= max) {
             outputMin = min;

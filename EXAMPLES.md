@@ -249,6 +249,15 @@ Filters smooth sensor measurements, eliminate high-frequency noise, and estimate
   - Uses `LinearRegression` over recent history to predict trends for moving states rather than assuming a static process.
   - Dynamic adaptation of the Kalman gain ($K$) to balance model prediction versus noisy measurements.
 
+#### `filter.linear_regression`
+- **Class**: `com.rbrabson.control.examples.filter.linear_regression.Main`
+- **Run**: `java -cp target/classes com.rbrabson.control.examples.filter.linear_regression.Main`
+- **Application / Use Case**: Trend forecasting, sensor drift compensation, simple predictive estimation for approximately linear signals.
+- **Concepts Demonstrated**:
+  - Maintaining a rolling history with `SizedStack`.
+  - Fitting a least-squares line with `LinearRegression` to estimate the next sample.
+  - Demonstrating how a short historical window can track steady ramps while filtering measurement noise.
+
 ---
 
 ### 6. Interpolated Lookup Tables (InterpLUT) (`com.rbrabson.control.examples.interplut`)
@@ -326,6 +335,7 @@ When developing control applications with `control-java`, consider these recurri
 | `feedback.feedback_control.Main` | Feedback | `FullStateFeedback` | Multi-variable state regulation ($K = [k_{pos}, k_{vel}]$) |
 | `filter.lowpass.Main` | Filter | `LowPassFilter` | Exponential moving average smoothing ($\alpha$) |
 | `filter.basic.Main` | Filter | `KalmanFilter`, `LinearRegression` | 1D Kalman filter with regression trend estimation |
+| `filter.linear_regression.Main` | Filter | `SizedStack`, `LinearRegression` | Rolling-window trend forecasting for approximately linear data |
 | `interplut.basic.Main` | InterpLUT | `InterpLUT` | Piecewise monotonic linear lookup table & calibration |
 | `interplut.temperature.Main` | InterpLUT | `InterpLUT` | Non-linear sensor temperature compensation table |
 | `interplut.adaptive_pid.Main` | InterpLUT | `InterpLUT`, `PID` | Dynamic gain scheduling based on error magnitude |
