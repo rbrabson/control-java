@@ -11,6 +11,60 @@ This library provides reusable control primitives for robotics and automation wo
 - Filtering utilities (low-pass and Kalman)
 - Monotone cubic interpolation lookup tables (InterpLUT)
 
+## Choosing the Right Control Mechanism
+
+Use this rule of thumb:
+
+- **PID** when you need to hold or track one measured variable (speed, angle, position) and reject disturbances.
+- **Feedforward** when you can model what effort is needed ahead of time (velocity/acceleration/gravity effects).
+- **Full-state feedback** when one actuator is influenced by multiple coupled states and you want one control law over the full state vector.
+- **Motion profile** when setpoint changes should be smooth and constrained by max velocity/acceleration.
+- **Filters (Low-pass/Kalman)** when measurements are noisy or intermittent and raw values cause unstable control.
+- **InterpLUT** when a relationship is nonlinear and best represented by measured calibration points.
+
+In most real systems, you combine several of these:
+
+1. **Reference generation**: create feasible position/velocity/acceleration goals (motion profile or operator command shaping).
+2. **Model term**: compute expected effort (feedforward and/or LUT lookup).
+3. **Error correction**: add PID or full-state feedback correction from sensors.
+4. **Sensor conditioning**: filter noisy measurements before they drive control terms.
+
+### Example: Shooter + Spindexer + Transfer + Flywheel + Hood with Camera Range
+
+If a camera provides target pose/distance (x/y/z), a practical architecture is:
+
+1. **Range and angle estimation**
+   - Compute scalar distance from x/y/z (or use z directly if already range-aligned).
+   - Filter this value (`LowPassFilter` or `KalmanFilter`) to reduce shot-to-shot jitter.
+2. **Map distance to mechanism goals**
+   - Use `InterpLUT` for `distance -> flywheel RPM`.
+   - Use another `InterpLUT` for `distance -> hood angle`.
+   - Optional third LUT for `distance -> expected flight time` to support lead compensation.
+3. **Flywheel control**
+   - Run velocity **PID** on measured wheel speed.
+   - Add **FeedForward** for target wheel velocity/acceleration to improve spin-up response.
+4. **Hood control**
+   - Use position **PID** for hood angle.
+   - Add cosine **FeedForward** (`kCos`) if gravity load changes with angle.
+   - Optionally profile hood moves with `MotionProfile` to avoid overshoot and linkage shock.
+5. **Spindexer/transfer sequencing**
+   - Control each conveyor speed with simple PID (or open-loop if characterized well).
+   - Gate feeding with logic: only feed when flywheel speed error and hood angle error are both within tolerance for a minimum dwell time.
+6. **Whole-system behavior**
+   - Recompute goals continuously from filtered camera distance.
+   - Keep actuation robust when vision drops out by holding last valid target briefly and timing out to a safe fallback mode.
+
+This is a strong pattern: **LUT for aiming goals, feedforward for predicted effort, PID for final correction, filters for noisy vision**.
+
+### Other Real-World Patterns
+
+- **Elevator or linear slide**: motion profile position target + position PID + velocity/acceleration feedforward.
+- **Single-joint arm**: profile angle target + PID + cosine feedforward for gravity compensation.
+- **Turret or yaw axis with noisy vision**: filtered heading error + PID, optionally profile large slews before fine-lock.
+- **Drive velocity control**: wheel-speed PID + feedforward (`kV`, `kA`) for fast acceleration tracking.
+- **Temperature process (heater/chamber)**: PID with filtered sensor input; feedforward when load changes are predictable.
+- **Coupled states (e.g., balancing + velocity)**: full-state feedback over angle/rate/velocity states, potentially with separate outer-loop setpoint generation.
+
 ## Project Status
 
 This repository currently targets:
